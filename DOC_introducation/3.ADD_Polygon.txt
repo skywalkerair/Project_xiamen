@@ -1,0 +1,9 @@
+1.FillConvexPoly
+
+
+2.轮廓的查找、表达、绘制、特性及匹配：
+http://www.360doc.com/content/13/0410/16/10724725_277397143.shtml
+
+3.全面介绍
+http://www.rosoo.net/a/201004/9158.html#FitLine
+ 

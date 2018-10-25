@@ -1,0 +1,65 @@
+1.安装emgu
+2.添加PATH
+3.加入引用
+4.找出视频流处理：
+5.使用Flycapture设置一下参数GIGE，
+ CircleF[] circles = grayImage.HoughCircles(new Gray(250), new Gray(74.471), 1.0, grayImage.Width,0, 0)[0];//第二个参数
+
+
+1）找到函数调用
+J_Image_GetBufferInfo() ;
+
+Pixel access functions:
+These functions are used for accessing pixels directly inside an image. 
+A raw image needs to be converted using J_Image_FromRawToImage() before pixels can be read or written
+
+set pixels to
+
+
+
+2）与Emgucv相结合
+
+代码：
+  public void button_circle_Click(object sender, EventArgs e)
+        {
+            //Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
+            
+            Console.WriteLine("1");
+
+            //Bitmap img = new Bitmap(400, 400);
+            //img.Save(".\\saveimg" + ".bmp");
+            myFactory.CameraList[0].SaveNextFrame(".\\saveimg"+".bmp");
+
+            Console.WriteLine("2");
+            ImageProcess();
+           
+        }
+
+        /* Image img = Properties.Resources.Form3_PIC_00;  //只能是system.drawing.image能读入，Mat和emgu的image读不了
+            Bitmap bmpImage = new Bitmap(img); //这是关键，国外网站看到的
+            Emgu.CV.Image<Bgr, Byte> currentFrame = new Emgu.CV.Image<Bgr, Byte>(bmpImage);  //只能这么转
+       
+            Mat invert = new Mat();
+             CvInvoke.BitwiseAnd(currentFrame, currentFrame, invert);  //这是官网上的方法，变通用。没看到提供其它方法直接转换的。
+         */
+
+        private void ImageProcess( )
+        {
+            ///*111111111111111111--canny*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(".\\saveimg" + ".bmp");
+            Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+            
+            ///*111111111111111111--canny*/
+            Image<Gray, Byte> cannyGray = grayImage.Canny(150, 255);  
+            /*222222222222222222--直线*/
+            //Image<Gray, Byte> cannyGray = new Image<Gray, Byte>(".\\saveimg" + ".bmp");
+            CircleF[] circles = grayImage.HoughCircles(new Gray(255), new Gray(50), 1.0, grayImage.Width / 5, 5, 30)[0];
+            Image<Bgr, Byte> imageLines = new Image<Bgr, Byte>(".\\saveimg" + ".bmp"); 
+            foreach (CircleF circle in circles)
+            {
+                imageLines.Draw(circle, new Bgr(Color.Yellow), 5);
+            } 
+
+            //显示结果
+            pictureBox_circle.Image = cannyGray.ToBitmap();
+        }
