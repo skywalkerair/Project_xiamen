@@ -8,48 +8,42 @@ using System.Threading;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-
+//å¯¼å…¥Emgu.CV
 using Emgu.CV;
 using Emgu.CV.UI;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.VideoSurveillance;
-//using System.Threading;
-using System.Runtime.InteropServices; // ºóÃæµÄ[DllImport("kernel32")]
+//å¯¼å…¥ System.Threading;
+using System.Runtime.InteropServices; // åé¢çš„[DllImport("kernel32")]
 using System.Drawing.Imaging;
 using System.Diagnostics;
-
+//å¯¼å…¥è‡ªå·±çš„çŸ©é˜µæ¨¡å—
 using matrix_test;
-
-//µ¼ÈëJAIµÄÒıÓÃ
+//å¯¼å…¥JAI
 using Jai_FactoryDotNET;
-
-//µ¼ÈëflycaptureµÄÒıÓÃ
-//using System.Diagnostics;   
+//å¯¼å…¥flycapture
 using FlyCapture2Managed;
 using FlyCapture2Managed.Gui;
-
-//·Ö¸î×Ö·û´®
+//åˆ†å‰²å­—ç¬¦ä¸²
 using System.Text.RegularExpressions;
-
-
 
 namespace SimpleImageDisplaySample
 {
     public partial class Form1 : Form,ILog,IDisposable
     {
-        #region ³õÊ¼»¯È«¾Ö±äÁ¿
-        //Í¼Ïñ×ø±êÓëÊÀ½ç×ø±ê--¶ÁÊı¾İ
+        #region å£°æ˜å…¨å±€å˜é‡
+            #region /*iniæ–‡ä»¶å˜é‡å£°æ˜*/
+        //ç³»ç»Ÿæ–‡ä»¶ç”¨æ¥è¯»å–iniæ–‡ä»¶
         [DllImport("kernel32")]
         private static extern long GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
-
-        /**********¶¨±ê³õÊ¼»¯***********/
-        #region 0.¶¨±êÄ£¿é
+        #endregion
+        
+            #region /*å®šæ ‡å˜é‡å£°æ˜*/
+        //å›¾åƒåæ ‡ä¸ä¸–ç•Œåæ ‡åˆå§‹åŒ–
         public static double fc1, fc2, cc1, cc2, R11, R12, R13, R21, R22, R23, T1, T2, T3, s;
-        //Í¼Ïñ×ø±êÓëÊÀ½ç×ø±ê³õÊ¼»¯
       
-        //ÉèÖÃÒ»¸öFlagÀ´Çø·Ö¾ØĞÎºÍÔ²ĞÎ
+        //è®¾ç½®ä¸€ä¸ªFlagæ¥åŒºåˆ†çŸ©å½¢å’Œåœ†å½¢
         int Flag = 0;
         int Flag_t = 1;
   
@@ -59,14 +53,16 @@ namespace SimpleImageDisplaySample
         int point_X_circle, point_Y_circle;
 
         double world_X, world_Y;
-        //TODO
+        //TODO å¾…åˆ å‡
         double world_X_circle, world_Y_circle; 
 
         double[,] c = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] c_ = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] world_cor = new double[3, 1] { { 0 }, { 0 }, { 1 } };
         #endregion
-        #region 1.FLYÏà»úµÄ³õÊ¼»¯
+        
+            #region /*Flyç›¸æœºå˜é‡å£°æ˜*/
+        //ç›¸æœºçš„åˆå§‹åŒ–ç¨‹åº
         private FlyCapture2Managed.Gui.CameraControlDialog m_camCtlDlg;
         private ManagedCameraBase m_camera = null;
         private ManagedImage m_rawImage;
@@ -75,15 +71,16 @@ namespace SimpleImageDisplaySample
         private AutoResetEvent m_grabThreadExited;
         private BackgroundWorker m_grabThread;
         #endregion
-        #region 2.JAIÏà»úºÍÍ¼Ïñ´¦Àí
-        //Í¼Ïñ´¦Àí--Ô²
+        
+            #region /*JAIç›¸æœºå’Œå›¾åƒå¤„ç†å˜é‡å£°æ˜*/
+        //å›¾åƒå¤„ç†--åœ†
         public CircleF circle;
         public CircleF[] circles;
-        //Í¼Ïñ´¦Àí--¾ØĞÎ
+        //å›¾åƒå¤„ç†--çŸ©å½¢
         public MCvBox2D box1;
         public List<MCvBox2D> boxList;
-        
-        //JAIÏà»ú
+    
+        //JAIç›¸æœº
         CFactory myFactory = new CFactory();
          
         // Opened camera obejct
@@ -96,112 +93,48 @@ namespace SimpleImageDisplaySample
         private ModBusWrapper Wrapper = null;
         #endregion 
         #endregion
-
+        
         public Form1 ()
-        {         
-            InitializeComponent(); //´°¿ÚµÄ³õÊ¼»¯£º±ÈÈçÍÏÒ»Ğ©¿ò
-            #region 0.Modbus³õÊ¼»¯
-            /*************JAI__init***************/
-            //Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
-            // Open the factory with the default Registry database
-            //error = myFactory.Open("");
-            // Search for cameras and update all controls
-            //SearchButton_Click(null, null);
+        {   
+            #region åˆå§‹åŒ–ä¸»çª—å£
+            InitializeComponent(); //çª—å£çš„åˆå§‹åŒ–ï¼šæ¯”å¦‚æ‹–ä¸€äº›æ¡†
 
-            /***********Modbus--TCP**************/
-            this.Wrapper = ModBusWrapper.CreateInstance(Protocol.TCPIP);
-            this.Wrapper.Logger = this;
-            #endregion
-            #region 1.FlyÏà»ú__init
-
+            /*************Fly__init***************/
+            #region /*Flyç›¸æœºåˆå§‹åŒ–*/
             m_rawImage = new ManagedImage();
             m_processedImage = new ManagedImage();
             m_camCtlDlg = new CameraControlDialog();
-            m_grabThreadExited = new AutoResetEvent(false);  //·ÇÖÕÖ¹
-
+            m_grabThreadExited = new AutoResetEvent(false);  //éç»ˆæ­¢
+            #endregion
+           
+            /*************JAI__init***************/
+            #region /*JAIç›¸æœºåˆå§‹åŒ–*/
             Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
-
             // Open the factory with the default Registry database
             error = myFactory.Open("");
-
             // Search for cameras and update all controls
             SearchButton_Click(null, null);
+            #endregion 
+            
+            /***********Modbus--TCP**************/
+            #region /*Modbusåˆå§‹åŒ–*/
+            this.Wrapper = ModBusWrapper.CreateInstance(Protocol.TCPIP);
+            this.Wrapper.Logger = this;
             #endregion
-            #region 2.×¢ÊÍ--FlyÏà»ú__hide()
-        //    Hide();
-        //    CameraSelectionDialog camSlnDlg = new CameraSelectionDialog();
-        //    bool retVal = camSlnDlg.ShowModal();
-        //    if  (retVal)
-        //    {
-        //       try
-        //        {
-        //            ManagedPGRGuid[] selectedGuids = camSlnDlg.GetSelectedCameraGuids();
-        //            ManagedPGRGuid guidToUse = selectedGuids[0];
-
-        //            ManagedBusManager busMgr = new ManagedBusManager();
-        //            InterfaceType ifType = busMgr.GetInterfaceTypeFromGuid(guidToUse);
-
-        //            if (ifType == InterfaceType.GigE)
-        //            {
-        //                m_camera = new ManagedGigECamera();
-        //            }
-        //            else
-        //            {
-        //                m_camera = new ManagedCamera();
-        //            }
-
-        //            // Connect to the first selected GUID
-        //            m_camera.Connect(guidToUse);
-
-        //            m_camCtlDlg.Connect(m_camera);    //
-
-        //            CameraInfo camInfo = m_camera.GetCameraInfo();
-        //            //UpdateFormCaption(camInfo);
-
-        //            // Set embedded timestamp to on
-        //            EmbeddedImageInfo embeddedInfo = m_camera.GetEmbeddedImageInfo();
-        //            embeddedInfo.timestamp.onOff = true;
-        //            m_camera.SetEmbeddedImageInfo(embeddedInfo);
-
-        //            m_camera.StartCapture();
-
-        //            m_grabImages = true;
-
-        //            StartGrabLoop();
-        //        }
-        //        catch (FC2Exception ex)
-        //        {
-        //            Debug.WriteLine("Failed to load form successfully: " + ex.Message);
-        //            Environment.ExitCode = -1;
-        //            Application.Exit();
-        //            return;
-        //        }
-
-        //        toolStripButtonStart.Enabled = false;
-        //        toolStripButtonStop.Enabled = true;
-        //    }
-        //    else
-        //    {
-        //        Environment.ExitCode = -1;
-        //        Application.Exit();
-        //        return;
-        //    }
-
-        //    Show();
-        #endregion       
+            #endregion     
         }
 
+        #region /*Bç›¸æœº__åœ¨ç›¸æ¡†3ä¸­æ˜¾ç¤º*/
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
-            #region BÏà»ú__ÔÚÏà¿ò3ÖĞÏÔÊ¾
+           
             pictureBox3.Image = m_processedImage.bitmap;
-            pictureBox3.Invalidate();
-            #endregion
+            pictureBox3.Invalidate();     
         }
+        #endregion
         private void Form1_Load(object sender, EventArgs e)
         {
-            #region FlyÏà»ú__hide()
-            //Hide();
+            #region Flyç›¸æœº__hide()
             CameraSelectionDialog camSlnDlg = new CameraSelectionDialog();
             bool retVal = camSlnDlg.ShowModal();
             if (retVal)
@@ -226,7 +159,7 @@ namespace SimpleImageDisplaySample
                     // Connect to the first selected GUID
                     m_camera.Connect(guidToUse);
 
-                    m_camCtlDlg.Connect(m_camera);    //
+                    m_camCtlDlg.Connect(m_camera);    
 
                     CameraInfo camInfo = m_camera.GetCameraInfo();
                     //UpdateFormCaption(camInfo);
@@ -240,6 +173,7 @@ namespace SimpleImageDisplaySample
 
                     m_grabImages = true;
 
+                    //Function call
                     StartGrabLoop();
               }
                 catch (FC2Exception ex)
@@ -260,106 +194,65 @@ namespace SimpleImageDisplaySample
                 return;
             }
 
+            //TODO:Show()å‡½æ•°è¯•ä¸€ä¸‹ä»€ä¹ˆæ•ˆæœ
             //Show();
             #endregion
-            #region ¶¨±ê²ÎÊıµÄ³õÊ¼»¯
-            //¼ÓÔØ±ê¶¨²ÎÊı
+            #region å®šæ ‡å‚æ•°çš„åˆå§‹åŒ–
+            //åŠ è½½æ ‡å®šå‚æ•°
             StringBuilder str = new StringBuilder(100);
-            GetPrivateProfileString("±ê¶¨", "fc1", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "fc1", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 fc1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "fc2", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "fc2", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 fc2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "cc1", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "cc1", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 cc1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "cc2", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "cc2", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 cc2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R11", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R11", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R11 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R12", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R12", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R12 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R13", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R13", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R13 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R21", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R21", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R21 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R22", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R22", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R22 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "R23", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "R23", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 R23 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "T1", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "T1", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 T1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "T2", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "T2", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 T2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "T3", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "T3", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 T3 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("±ê¶¨", "s", "", str, 100, Application.StartupPath + "/calib2.ini");
+            GetPrivateProfileString("æ ‡å®š", "s", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 s = Convert.ToDouble(str.ToString());
             #endregion
         }
            
-        //Form_load½áÊø
-            // Search for any new cameras using Filter Driver
-            //myFactory.UpdateCameraList(Jai_FactoryDotNET.CFactory.EDriverType.FilterDriver);
-            //foreach (CCamera i in myFactory.CameraList)
-            //{
-            //    switch (i.UserName)
-            //    {
-            //        case "Cam1":
-            //            myCamera1 = i;
-            //            break;
-            //        case "Cam2":
-            //            myCamera2 = i;
-            //            break;
-            //        //case "Cam3":
-            //        //    myCamera3 = i;
-            //        //    break;
-            //    }
-            //    //if (myCamera1 != null)
-            //    //{
-            //    //    error = myCamera1.Open();
-            //    //    if (error != Jai_FactoryWrapper.EFactoryError.Success)
-            //    //    {
-            //    //        MessageBox.Show(error.ToString(), "Ò»ºÅÏà»ú");
-            //    //    }               
-            //    //    myCamera1.StretchLiveVideo = true;
-            //    //    myCamera1.SkipImageDisplayWhenBusy = true;
-            //    //    myCamera1.GetNode("TriggerMode").Value = "Off";
-
-            //    //}
-            //    //if (myCamera2 != null)
-            //    //{
-            //    //    error = myCamera2.Open();
-            //    //    if (error != Jai_FactoryWrapper.EFactoryError.Success)
-            //    //    {
-            //    //        MessageBox.Show(error.ToString(), "¶şºÅÏà»ú");
-            //    //    }
-            //    //    myCamera2.StretchLiveVideo = true;
-            //    //    myCamera2.SkipImageDisplayWhenBusy = true;
-            //    //    myCamera2.GetNode("TriggerMode").Value = "Off";
-
-            //    //}
-           
-         /**************FLY-BÏà»ú*******************/
+        /**************FLY-Bç›¸æœº*******************/
         //Form1_FormClosing 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            #region FLYÏà»ú¹Ø±Õ
+            #region FLYç›¸æœºå…³é—­
             try
             {
-                //ĞŞ¸Ä¡ª1.close()
+                //ä¿®æ”¹â€”1.close()
                 //toolStripButtonStop_Click_1(sender, e);
                 StopButton_Click( sender,e);
                 m_camera.Disconnect();
@@ -367,10 +260,12 @@ namespace SimpleImageDisplaySample
             catch (FC2Exception)
             {
                 // Nothing to do here
+                Console.WriteLine("ä¸»çª—å£çš„å…³é—­ç•Œé¢å‡ºç°é—®é¢˜ï¼");
             }
             catch (NullReferenceException)
             {
                 // Nothing to do here
+                Console.WriteLine("ä¸»çª—å£å‡ºç°å…¶ä»–é”™è¯¯ï¼");
             }
             #endregion
         }
@@ -378,7 +273,7 @@ namespace SimpleImageDisplaySample
        //FLY-StartGrabLoop
         private void StartGrabLoop()
         {
-        #region FLYÏà»ú¿ªÊ¼ÅÄÉã
+        #region FLYç›¸æœºå¼€å§‹æ‹æ‘„
             m_grabThread = new BackgroundWorker();
             m_grabThread.ProgressChanged += new ProgressChangedEventHandler(UpdateUI);
             m_grabThread.DoWork += new DoWorkEventHandler(GrabLoop);
@@ -390,7 +285,7 @@ namespace SimpleImageDisplaySample
         //FLY---GrabLoop
         private void GrabLoop(object sender, DoWorkEventArgs e)
         {
-        #region FLYÏà»úÁ¬ĞøÅÄÉã
+        #region FLYç›¸æœºè¿ç»­æ‹æ‘„
             BackgroundWorker worker = sender as BackgroundWorker;
             while (m_grabImages)
             {
@@ -409,7 +304,7 @@ namespace SimpleImageDisplaySample
                     m_rawImage.Convert(FlyCapture2Managed.PixelFormat.PixelFormatBgr, m_processedImage);
                 }
                 
-                worker.ReportProgress(0);    //½ø¶ÈÁ÷³Ì  
+                worker.ReportProgress(0);    //è¿›åº¦æµç¨‹  
             }
             m_grabThreadExited.Set();
         #endregion
@@ -418,7 +313,7 @@ namespace SimpleImageDisplaySample
         //FLY-begin
         private void toolStripButtonStart_Click(object sender, EventArgs e)
         {
-        #region FLYÏà»úÆô¶¯
+        #region FLYç›¸æœºå¯åŠ¨
             m_camera.StartCapture();
 
             m_grabImages = true;
@@ -433,7 +328,7 @@ namespace SimpleImageDisplaySample
         //FLY-B_stop
         private void toolStripButtonStop_Click_1(object sender, EventArgs e)
         {
-            #region FLYÏà»ú¹Ø±Õ
+            #region FLYç›¸æœºå…³é—­
             m_grabImages = false;
 
             try
@@ -457,7 +352,7 @@ namespace SimpleImageDisplaySample
         //FLY--control
         private void toolStripButtonCameraControl_Click(object sender, EventArgs e)
         {
-        #region Fly-Ïà»úÒş²Ø¿ØÖÆÉèÖÃ
+        #region Fly-ç›¸æœºéšè—æ§åˆ¶è®¾ç½®
             if (m_camCtlDlg.IsVisible())
             {
                 m_camCtlDlg.Hide();
@@ -471,16 +366,16 @@ namespace SimpleImageDisplaySample
         #endregion
         }
    
-        //µ¯³ö¶¨±êµÄ¶Ô»°¿ò   
+        //å¼¹å‡ºå®šæ ‡çš„å¯¹è¯æ¡†   
         private void toolStripMenuItem1_Click_1(object sender, EventArgs e)
         {
-            #region ±ê¶¨¿ò³öÀ´
+            #region æ ‡å®šæ¡†å‡ºæ¥
             calib cab = new calib();
             cab.Show();
             #endregion
         }
 
-        /**********EgiEÏà»ú³ÌĞò***********/
+        /**********EgiEç›¸æœºç¨‹åº***********/
         #region searching
         private void SearchButton_Click(object sender, EventArgs e)
         {
@@ -514,10 +409,10 @@ namespace SimpleImageDisplaySample
             }
         }
         #endregion
-        //EgiEÏà»ú¿ªÊ¼Í£Ö¹    
+        //EgiEç›¸æœºå¼€å§‹åœæ­¢    
         private void StartButton_Click(object sender, EventArgs e)
         {
-            //#region Ïà»ú¿ªÊ¼£¬Í£Ö¹°´¼ü
+            //#region ç›¸æœºå¼€å§‹ï¼Œåœæ­¢æŒ‰é”®
             if (myFactory.CameraList[0] != null)
             {
                 myFactory.CameraList[0].StartImageAcquisition(true, 5, pictureBox1.Handle);
@@ -534,7 +429,7 @@ namespace SimpleImageDisplaySample
         }
         private void StopButton_Click(object sender, EventArgs e)
         {
-            #region Stop_0.JAIÏà»úÍ£Ö¹°´¼ü
+            #region Stop_0.JAIç›¸æœºåœæ­¢æŒ‰é”®
             for (int i = 0; i < myFactory.CameraList.Count; i++)
             {
                 myFactory.CameraList[i].StopImageAcquisition();
@@ -546,20 +441,20 @@ namespace SimpleImageDisplaySample
             #endregion
  
         }        
-        /*******¹ØÓÚÍ¼Ïñ´¦Àí³ÌĞò**********/
-        //°´Ò»ÏÂ´¦ÀíÍ¼Ïñ²¢ÏÔÊ¾
+        /*******å…³äºå›¾åƒå¤„ç†ç¨‹åº**********/
+        //æŒ‰ä¸€ä¸‹å¤„ç†å›¾åƒå¹¶æ˜¾ç¤º
         //public void button_circle_Click_1(object sender, EventArgs e)
         //{
-        //    #region °´¼üÍ¼Ïñ´¦Àí
+        //    #region æŒ‰é”®å›¾åƒå¤„ç†
         //    Console.WriteLine("1");
         //    myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
         //    ImageProcess();
         //    #endregion
         //}
-        /********Ö±½ÓÏß³Ì¿ØÖÆÍ¼Ïñ´¦Àí*******/
+        /********ç›´æ¥çº¿ç¨‹æ§åˆ¶å›¾åƒå¤„ç†*******/
         private void timer2_Tick_1(object sender, EventArgs e)
         {
-            #region 5000ºÁÃë½øÈëÒ»´ÎÍ¼Ïñ´¦Àí
+            #region 5000æ¯«ç§’è¿›å…¥ä¸€æ¬¡å›¾åƒå¤„ç†
             Console.WriteLine("image processing!!!");
             myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
             ImageProcess();
@@ -574,8 +469,8 @@ namespace SimpleImageDisplaySample
             {
                 Int32 x = (Int32)(world_X);
                 Int32 y = (Int32)(world_Y);
-                Console.WriteLine("´«¸ømodbus_x:" + x);
-                Console.WriteLine("´«¸ømodbus_y:" + y);
+                Console.WriteLine("ä¼ ç»™modbus_x:" + x);
+                Console.WriteLine("ä¼ ç»™modbus_y:" + y);
                 Int32 m = (Int32)(0.011);
 
                 byte[] a = BitConverter.GetBytes(x);
@@ -598,8 +493,8 @@ namespace SimpleImageDisplaySample
             {
                 Int32 x = (Int32)(world_X_circle);
                 Int32 y = (Int32)(world_Y_circle);
-                Console.WriteLine("´«¸ømodbus_x:" + x);
-                Console.WriteLine("´«¸ømodbus_y:" + y);
+                Console.WriteLine("ä¼ ç»™modbus_x:" + x);
+                Console.WriteLine("ä¼ ç»™modbus_y:" + y);
                 Int32 m = (Int32)(0.011);
 
                 byte[] a = BitConverter.GetBytes(x);
@@ -625,8 +520,8 @@ namespace SimpleImageDisplaySample
             #endregion
         }
         
-        //Í¼Ïñ´¦Àí³ÌĞòÄ£¿é
-        #region Í¼Ïñ´¦ÀíÄ£¿é
+        //å›¾åƒå¤„ç†ç¨‹åºæ¨¡å—
+        #region å›¾åƒå¤„ç†æ¨¡å—
         private void ImageProcess()
         {
             //*canny*/
@@ -635,7 +530,7 @@ namespace SimpleImageDisplaySample
             double cannyThreshold =200.0;
             double circleAccumulatorThreshold = 55;
             #region Find circles
-            /*¼ì²âÔ²ĞÎ*/
+            /*æ£€æµ‹åœ†å½¢*/
             circles = grayImage.HoughCircles(
                 new Gray(cannyThreshold),
                 new Gray(circleAccumulatorThreshold),
@@ -644,13 +539,13 @@ namespace SimpleImageDisplaySample
                 20, //min radius
                 0 //max radius
                 )[0]; //Get the circles from the first channel
-            //CircleF[] circles = grayImage.HoughCircles(new Gray(250), new Gray(74.471), 1.0, grayImage.Width,0, 0)[0];//µÚ¶ş¸ö²ÎÊı
-            /*ÔÚÔ­Í¼ÉÏ»­Ô²*/
+            //CircleF[] circles = grayImage.HoughCircles(new Gray(250), new Gray(74.471), 1.0, grayImage.Width,0, 0)[0];//ç¬¬äºŒä¸ªå‚æ•°
+            /*åœ¨åŸå›¾ä¸Šç”»åœ†*/
             // Image<Bgr, Byte> imageLines = new Image<Bgr, Byte>(".\\saveimg" + ".bmp"); 
             // foreach (CircleF circle in circles)
             // {
             //    imageLines.Draw(circle, new Bgr(Color.Red), 2);
-            /*Êä³öÔ²µÄÔ²ĞÄ*/
+            /*è¾“å‡ºåœ†çš„åœ†å¿ƒ*/
             //Console.WriteLine(circle.Center);
             // }
             #endregion
@@ -683,7 +578,7 @@ namespace SimpleImageDisplaySample
                    contours != null;
                    contours = contours.HNext)
                 {
-                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage);//×¢ÒâÕâÀïµÄThe desired approximation accuracyÎª0.04
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage);//æ³¨æ„è¿™é‡Œçš„The desired approximation accuracyä¸º0.04
 
                     if (currentContour.Area >400) //only consider contours with area greater than 4300
                     {
@@ -758,7 +653,7 @@ namespace SimpleImageDisplaySample
                 triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
                 //Console.WriteLine("Center Of rectangle1 :" + boxList[0].center);
                // Console.WriteLine("Center Of rectangle2 :"+ boxList);
-                //Í¼ÏñÖĞx,yµÄ×ø±êÎ»ÖÃ
+                //å›¾åƒä¸­x,yçš„åæ ‡ä½ç½®
                 point_X = (Int32)(boxList[0].center.X);
                 point_Y = (Int32)(boxList[0].center.Y);
                 //Flag = 0;
@@ -779,7 +674,7 @@ namespace SimpleImageDisplaySample
                 if (AreaCircle >= 4000 && AreaCircle <= 4600)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
-                    /*Êä³öÔ²µÄÔ²ĞÄ*/
+                    /*è¾“å‡ºåœ†çš„åœ†å¿ƒ*/
                     //Console.WriteLine("Center Of Circle:" + circle.Center);
                     point_X_circle = (Int32)(circles[0].Center.X);
                     point_Y_circle = (Int32)(circles[0].Center.Y);
@@ -790,13 +685,13 @@ namespace SimpleImageDisplaySample
                 //Console.WriteLine("circle_area:" + AreaCircle);
               
                 //Console.WriteLine("circle-x:" + circles[0].Center.X);
-                //Console.WriteLine("circle-y:" + circles[0].Center.Y); //circle[0]»òÕßcircle[1]ÊÇÖ¸ÕÒµ½µÄÔ²ÖĞµÄµÚÒ»¸öºÍµÚ¶ş¸ö
+                //Console.WriteLine("circle-y:" + circles[0].Center.Y); //circle[0]æˆ–è€…circle[1]æ˜¯æŒ‡æ‰¾åˆ°çš„åœ†ä¸­çš„ç¬¬ä¸€ä¸ªå’Œç¬¬äºŒä¸ª
 
             }
             #endregion
-            //ÏÔÊ¾½á¹û
+            //æ˜¾ç¤ºç»“æœ
             pictureBox_circle.Image = triangleRectangleImage.ToBitmap();
-            //point_X = (Int32)(box1.center.X);   //Ô²µÄx×ø±êºÍÔ²µÄy×ø±ê SimpleImageDisplaySample.Form1.box1¡±³åÍ»	C:\Users\Administrator\Desktop\zsx__PC\20180108_PC_xiamen\5ADD_calib(20180108)\ADD_calib(20180108)_changing\ADD_Polygon£¨20171029£©\imshow_add_modbus£¨20171009£©\SimpleImageDisplaySample\Form1.cs	716	31	SimpleImageDisplaySample
+            //point_X = (Int32)(box1.center.X);   //åœ†çš„xåæ ‡å’Œåœ†çš„yåæ ‡ SimpleImageDisplaySample.Form1.box1â€å†²çª	C:\Users\Administrator\Desktop\zsx__PC\20180108_PC_xiamen\5ADD_calib(20180108)\ADD_calib(20180108)_changing\ADD_Polygonï¼ˆ20171029ï¼‰\imshow_add_modbusï¼ˆ20171009ï¼‰\SimpleImageDisplaySample\Form1.cs	716	31	SimpleImageDisplaySample
             //point_Y = (Int32)(box1.center.Y);
             //point_Y = (Int32)(circles[0].Center.Y);
             //Console.WriteLine("SimpleImageDisplaySample.Form1.box1.center.X:" + box1.center.X);
@@ -815,7 +710,7 @@ namespace SimpleImageDisplaySample
                 //Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
                 world_X = (world_cor[0, 0] / s) * 1000;
                 world_Y = (world_cor[1, 0] / s) * 1000;
-                //point_X = (Int32)(circles[0].Center.X);   //Ô²µÄx×ø±êºÍÔ²µÄy×ø±ê
+                //point_X = (Int32)(circles[0].Center.X);   //åœ†çš„xåæ ‡å’Œåœ†çš„yåæ ‡
                 //point_Y = (Int32)(circles[0].Center.Y);
                 //int number_x = (int)(world_X);
                 //int number_y = (int)(world_Y);
@@ -838,7 +733,7 @@ namespace SimpleImageDisplaySample
                 //Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
                 world_X_circle = (world_cor[0, 0] / s) * 1000;
                 world_Y_circle = (world_cor[1, 0] / s) * 1000;
-                //point_X = (Int32)(circles[0].Center.X);   //Ô²µÄx×ø±êºÍÔ²µÄy×ø±ê
+                //point_X = (Int32)(circles[0].Center.X);   //åœ†çš„xåæ ‡å’Œåœ†çš„yåæ ‡
                 //point_Y = (Int32)(circles[0].Center.Y);
                 //int number_x = (int)(world_X);
                 //int number_y = (int)(world_Y);
@@ -858,10 +753,8 @@ namespace SimpleImageDisplaySample
         }
         #endregion
 
-
-
-        /**********Modbus³ÌĞò***********/
-        #region Modbus µÄ´«ËÍµÄÊı¾İ¸ñÊ½´¦Àí
+        /**********Modbusç¨‹åº***********/
+        #region Modbus çš„ä¼ é€çš„æ•°æ®æ ¼å¼å¤„ç†
         //private void btnSend_Click_1(object sender, EventArgs e)
         //{
            
@@ -875,8 +768,8 @@ namespace SimpleImageDisplaySample
         //    Int32 x = (Int32)(world_X);
 
         //    Int32 y = (Int32)(world_Y);
-        //    Console.WriteLine("´«¸ømodbus_x:" + x);
-        //    Console.WriteLine("´«¸ømodbus_y:" + y);
+        //    Console.WriteLine("ä¼ ç»™modbus_x:" + x);
+        //    Console.WriteLine("ä¼ ç»™modbus_y:" + y);
         //   // Int32 y = (Int32)circles[0].Center.Y * 1000;
         //   // System.Console.WriteLine(y);
 
@@ -904,7 +797,7 @@ namespace SimpleImageDisplaySample
             
         //}
         #endregion
-        #region Ğ¡¶Ë·â×°
+        #region å°ç«¯å°è£…
         public static void ReverseBytes(byte[] bytes, int start, int len)
         {
             int end = start + len - 1;
@@ -925,7 +818,7 @@ namespace SimpleImageDisplaySample
             return bytes;
         }
         #endregion
-        #region ILog ³ÉÔ±
+        #region ILog æˆå‘˜
         public void Write(string log)
         {
             this.tbxHistory.AppendText(log + Environment.NewLine);
@@ -933,23 +826,21 @@ namespace SimpleImageDisplaySample
             this.tbxHistory.ScrollToCaret();
         }
         #endregion
-        #region ÊÍ·ÅModbus×ÊÔ´
+        #region é‡Šæ”¾Modbusèµ„æº
         private void TestModBus_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.Wrapper.Dispose();
         }
         #endregion
-        /******Ïà»ú·Å´óËõĞ¡*********/
-        #region zoom·Å´óËõĞ¡
+        
+        /******ç›¸æœºæ”¾å¤§ç¼©å°*********/
+        #region zoomæ”¾å¤§ç¼©å°
         private void ZoomInbutton_Click(object sender, EventArgs e)
         {
             //Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
             if (myFactory.CameraList[0] != null)
                 myFactory.CameraList[0].ZoomIn();
-               
-
         }
-
         private void ZoomResetbutton_Click(object sender, EventArgs e)
         {
             if (myFactory.CameraList[0] != null)
@@ -963,14 +854,57 @@ namespace SimpleImageDisplaySample
         }
         #endregion
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
 
-        }
+#region /*æ³¨é‡Šè¡¥å……*/
+/**************************************************/
+#region  /*Form_loadç»“æŸ*/  
+    // Search for any new cameras using Filter Driver
+    //myFactory.UpdateCameraList(Jai_FactoryDotNET.CFactory.EDriverType.FilterDriver);
+    //foreach (CCamera i in myFactory.CameraList)
+    //{
+    //    switch (i.UserName)
+    //    {
+    //        case "Cam1":
+    //            myCamera1 = i;
+    //            break;
+    //        case "Cam2":
+    //            myCamera2 = i;
+    //            break;
+    //        //case "Cam3":
+    //        //    myCamera3 = i;
+    //        //    break;
+    //    }
+    //    //if (myCamera1 != null)
+    //    //{
+    //    //    error = myCamera1.Open();
+    //    //    if (error != Jai_FactoryWrapper.EFactoryError.Success)
+    //    //    {
+    //    //        MessageBox.Show(error.ToString(), "ä¸€å·ç›¸æœº");
+    //    //    }               
+    //    //    myCamera1.StretchLiveVideo = true;
+    //    //    myCamera1.SkipImageDisplayWhenBusy = true;
+    //    //    myCamera1.GetNode("TriggerMode").Value = "Off";
 
+    //    //}
+    //    //if (myCamera2 != null)
+    //    //{
+    //    //    error = myCamera2.Open();
+    //    //    if (error != Jai_FactoryWrapper.EFactoryError.Success)
+    //    //    {
+    //    //        MessageBox.Show(error.ToString(), "äºŒå·ç›¸æœº");
+    //    //    }
+    //    //    myCamera2.StretchLiveVideo = true;
+    //    //    myCamera2.SkipImageDisplayWhenBusy = true;
+    //    //    myCamera2.GetNode("TriggerMode").Value = "Off";
+
+    //    //}
+    //}
+#endregion
+
+#region /*æ³¨é‡Š--çº¿ç¨‹å®šæ—¶å¤„ç†å›¾åƒ*/
         //private void timer1_Tick(object sender, EventArgs e)
         //{
-        //    #region 500ºÁÃë½øĞĞÒ»´Î£¬½«×ø±êÖµÍ¨¹ıModbus°ÑÖµ´«¸ø»úĞµÊÖ
+        //    #region 500æ¯«ç§’è¿›è¡Œä¸€æ¬¡ï¼Œå°†åæ ‡å€¼é€šè¿‡ModbusæŠŠå€¼ä¼ ç»™æœºæ¢°æ‰‹
         //    timer1.Enabled = true;
         //    string str1 = this.tbxSendText.Text.Trim().ToString();
             
@@ -981,8 +915,8 @@ namespace SimpleImageDisplaySample
         //    {
         //        Int32 x = (Int32)(world_X);
         //        Int32 y = (Int32)(world_Y);
-        //        Console.WriteLine("´«¸ømodbus_x:" + x);
-        //        Console.WriteLine("´«¸ømodbus_y:" + y);
+        //        Console.WriteLine("ä¼ ç»™modbus_x:" + x);
+        //        Console.WriteLine("ä¼ ç»™modbus_y:" + y);
         //        Int32 m = (Int32)(0.011);
 
         //        byte[] a = BitConverter.GetBytes(x);
@@ -1005,8 +939,8 @@ namespace SimpleImageDisplaySample
         //    {
         //        Int32 x = (Int32)(world_X_circle);
         //        Int32 y = (Int32)(world_Y_circle);
-        //        Console.WriteLine("´«¸ømodbus_x:" + x);
-        //        Console.WriteLine("´«¸ømodbus_y:" + y);
+        //        Console.WriteLine("ä¼ ç»™modbus_x:" + x);
+        //        Console.WriteLine("ä¼ ç»™modbus_y:" + y);
         //        Int32 m = (Int32)(0.011);
 
         //        byte[] a = BitConverter.GetBytes(x);
@@ -1041,18 +975,89 @@ namespace SimpleImageDisplaySample
         //}       
     }  
 }
-     
+#endregion  
 
+//TODO:æµ‹è¯•ä¸€ä¸‹FLYç›¸æœºçš„éšè—åŠŸèƒ½
+#region /*æ³¨é‡Š--Flyç›¸æœº__hide()*/
+        //    Hide();
+        //    CameraSelectionDialog camSlnDlg = new CameraSelectionDialog();
+        //    bool retVal = camSlnDlg.ShowModal();
+        //    if  (retVal)
+        //    {
+        //       try
+        //        {
+        //            ManagedPGRGuid[] selectedGuids = camSlnDlg.GetSelectedCameraGuids();
+        //            ManagedPGRGuid guidToUse = selectedGuids[0];
 
-/****²¹³ä×¢ÊÍ*****/
-#region ¹ØÓÚÍ¼ÏñÊı×é×ª»»ÎÊÌâ
-/* Í¼ÏñÊı×é×ª»»µÄÎÊÌâ
-         * Image img = Properties.Resources.Form3_PIC_00;  //Ö»ÄÜÊÇsystem.drawing.imageÄÜ¶ÁÈë£¬MatºÍemguµÄimage¶Á²»ÁË
-            Bitmap bmpImage = new Bitmap(img); //ÕâÊÇ¹Ø¼ü£¬¹úÍâÍøÕ¾¿´µ½µÄ
-            Emgu.CV.Image<Bgr, Byte> currentFrame = new Emgu.CV.Image<Bgr, Byte>(bmpImage);  //Ö»ÄÜÕâÃ´×ª
+        //            ManagedBusManager busMgr = new ManagedBusManager();
+        //            InterfaceType ifType = busMgr.GetInterfaceTypeFromGuid(guidToUse);
+
+        //            if (ifType == InterfaceType.GigE)
+        //            {
+        //                m_camera = new ManagedGigECamera();
+        //            }
+        //            else
+        //            {
+        //                m_camera = new ManagedCamera();
+        //            }
+
+        //            // Connect to the first selected GUID
+        //            m_camera.Connect(guidToUse);
+
+        //            m_camCtlDlg.Connect(m_camera);    //
+
+        //            CameraInfo camInfo = m_camera.GetCameraInfo();
+        //            //UpdateFormCaption(camInfo);
+
+        //            // Set embedded timestamp to on
+        //            EmbeddedImageInfo embeddedInfo = m_camera.GetEmbeddedImageInfo();
+        //            embeddedInfo.timestamp.onOff = true;
+        //            m_camera.SetEmbeddedImageInfo(embeddedInfo);
+
+        //            m_camera.StartCapture();
+
+        //            m_grabImages = true;
+
+        //            StartGrabLoop();
+        //        }
+        //        catch (FC2Exception ex)
+        //        {
+        //            Debug.WriteLine("Failed to load form successfully: " + ex.Message);
+        //            Environment.ExitCode = -1;
+        //            Application.Exit();
+        //            return;
+        //        }
+
+        //        toolStripButtonStart.Enabled = false;
+        //        toolStripButtonStop.Enabled = true;
+        //    }
+        //    else
+        //    {
+        //        Environment.ExitCode = -1;
+        //        Application.Exit();
+        //        return;
+        //    }
+
+        //    Show();
+        #endregion 
+
+#region /*æ³¨é‡Š--å…³äºå›¾åƒæ•°ç»„è½¬æ¢é—®é¢˜*/
+/* å›¾åƒæ•°ç»„è½¬æ¢çš„é—®é¢˜
+         * Image img = Properties.Resources.Form3_PIC_00;  //åªèƒ½æ˜¯system.drawing.imageèƒ½è¯»å…¥ï¼ŒMatå’Œemguçš„imageè¯»ä¸äº†
+            Bitmap bmpImage = new Bitmap(img); //è¿™æ˜¯å…³é”®ï¼Œå›½å¤–ç½‘ç«™çœ‹åˆ°çš„
+            Emgu.CV.Image<Bgr, Byte> currentFrame = new Emgu.CV.Image<Bgr, Byte>(bmpImage);  //åªèƒ½è¿™ä¹ˆè½¬
        
             Mat invert = new Mat();
-             CvInvoke.BitwiseAnd(currentFrame, currentFrame, invert);  //ÕâÊÇ¹ÙÍøÉÏµÄ·½·¨£¬±äÍ¨ÓÃ¡£Ã»¿´µ½Ìá¹©ÆäËü·½·¨Ö±½Ó×ª»»µÄ¡£
+             CvInvoke.BitwiseAnd(currentFrame, currentFrame, invert);  //è¿™æ˜¯å®˜ç½‘ä¸Šçš„æ–¹æ³•ï¼Œå˜é€šç”¨ã€‚æ²¡çœ‹åˆ°æä¾›å…¶å®ƒæ–¹æ³•ç›´æ¥è½¬æ¢çš„ã€‚
          */
 #endregion
-/****²¹³ä×¢ÊÍ*****/
+
+#region /*æ³¨é‡Š--JAIç›¸æœºåˆå§‹åŒ–*/
+/*************JAI__init***************/
+//Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
+// Open the factory with the default Registry database
+//error = myFactory.Open("");
+// Search for cameras and update all controls
+//SearchButton_Click(null, null);
+#endregion
+#endregion 

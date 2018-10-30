@@ -110,9 +110,5 @@ namespace SimpleImageDisplaySample
             Form1.s = s;
         }
 
-        private void textBox15_TextChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }
