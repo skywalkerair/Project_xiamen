@@ -48,7 +48,6 @@ namespace SimpleImageDisplaySample
             this.btnSend = new System.Windows.Forms.Button();
             this.tbxHistory = new System.Windows.Forms.RichTextBox();
             this.pictureBox_A_processed = new System.Windows.Forms.PictureBox();
-            this.button_circle = new System.Windows.Forms.Button();
             this.ZoomInbutton = new System.Windows.Forms.Button();
             this.ZoomResetbutton = new System.Windows.Forms.Button();
             this.ZoomOutbutton = new System.Windows.Forms.Button();
@@ -58,6 +57,7 @@ namespace SimpleImageDisplaySample
             this.label4 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.toolStripMenuItem_C = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).BeginInit();
@@ -205,13 +205,13 @@ namespace SimpleImageDisplaySample
             // 
             // toolStripMenuItem1
             // 
-            this.toolStripMenuItem1.Location = new System.Drawing.Point(144, 113);
+            this.toolStripMenuItem1.Location = new System.Drawing.Point(35, 110);
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(75, 23);
             this.toolStripMenuItem1.TabIndex = 13;
-            this.toolStripMenuItem1.Text = "标定1";
+            this.toolStripMenuItem1.Text = "标定A";
             this.toolStripMenuItem1.UseVisualStyleBackColor = true;
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click_1);
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click_A);
             // 
             // tbxSendText
             // 
@@ -246,15 +246,6 @@ namespace SimpleImageDisplaySample
             this.pictureBox_A_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_A_processed.TabIndex = 18;
             this.pictureBox_A_processed.TabStop = false;
-            // 
-            // button_circle
-            // 
-            this.button_circle.Location = new System.Drawing.Point(35, 113);
-            this.button_circle.Name = "button_circle";
-            this.button_circle.Size = new System.Drawing.Size(75, 23);
-            this.button_circle.TabIndex = 19;
-            this.button_circle.Text = "Circle";
-            this.button_circle.UseVisualStyleBackColor = true;
             // 
             // ZoomInbutton
             // 
@@ -337,11 +328,22 @@ namespace SimpleImageDisplaySample
             this.timer2.Interval = 2000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick_1);
             // 
+            // toolStripMenuItem_C
+            // 
+            this.toolStripMenuItem_C.Location = new System.Drawing.Point(144, 110);
+            this.toolStripMenuItem_C.Name = "toolStripMenuItem_C";
+            this.toolStripMenuItem_C.Size = new System.Drawing.Size(75, 23);
+            this.toolStripMenuItem_C.TabIndex = 31;
+            this.toolStripMenuItem_C.Text = "定标C";
+            this.toolStripMenuItem_C.UseVisualStyleBackColor = true;
+            this.toolStripMenuItem_C.Click += new System.EventHandler(this.toolStripMenuItem_C_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1376, 865);
+            this.Controls.Add(this.toolStripMenuItem_C);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label3);
@@ -349,7 +351,6 @@ namespace SimpleImageDisplaySample
             this.Controls.Add(this.ZoomOutbutton);
             this.Controls.Add(this.ZoomResetbutton);
             this.Controls.Add(this.ZoomInbutton);
-            this.Controls.Add(this.button_circle);
             this.Controls.Add(this.pictureBox_A_processed);
             this.Controls.Add(this.tbxHistory);
             this.Controls.Add(this.btnSend);
@@ -400,7 +401,6 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.RichTextBox tbxHistory;
         private System.Windows.Forms.PictureBox pictureBox_A_processed;
-        private System.Windows.Forms.Button button_circle;
         private System.Windows.Forms.Button ZoomInbutton;
         private System.Windows.Forms.Button ZoomResetbutton;
         private System.Windows.Forms.Button ZoomOutbutton;
@@ -410,6 +410,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Button toolStripMenuItem_C;
        
     }
 }

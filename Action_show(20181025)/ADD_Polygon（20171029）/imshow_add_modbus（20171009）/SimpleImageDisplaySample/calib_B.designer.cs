@@ -1,6 +1,6 @@
 ﻿namespace SimpleImageDisplaySample
 {
-    partial class calib_B
+    partial class calib_C
     {
         /// <summary>
         /// Required designer variable.
@@ -412,7 +412,7 @@
             this.textBox18.Size = new System.Drawing.Size(62, 21);
             this.textBox18.TabIndex = 27;
             // 
-            // calib
+            // calib_C
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -449,9 +449,9 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
-            this.Name = "calib";
+            this.Name = "calib_C";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "calib_B";
+            this.Text = "calib_C";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);

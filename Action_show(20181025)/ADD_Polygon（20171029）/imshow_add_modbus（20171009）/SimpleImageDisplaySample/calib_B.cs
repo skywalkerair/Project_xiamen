@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace SimpleImageDisplaySample
 {
-    public partial class calib_B : Form
+    public partial class calib_C : Form
     {
         [DllImport("kernel32")]
         private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
@@ -21,7 +21,7 @@ namespace SimpleImageDisplaySample
         double[,] c = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] c_ = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] world_cor = new double[3, 1] { { 0 }, { 0 }, { 1 } };
-        public calib_B()
+        public calib_C()
         {
             InitializeComponent();
         }

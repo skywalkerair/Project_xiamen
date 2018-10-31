@@ -415,13 +415,15 @@ namespace SimpleImageDisplaySample
         }
    
         //弹出定标的对话框   
-        private void toolStripMenuItem1_Click_1(object sender, EventArgs e)
+        private void toolStripMenuItem1_Click_A(object sender, EventArgs e)
         {
             #region 标定框出来
             calib cab = new calib();
             cab.Show();
+           
             #endregion
         }
+     
         #endregion
 
         /**************JAI-A&&C相机*******************/
@@ -487,6 +489,7 @@ namespace SimpleImageDisplaySample
             SearchButton.Enabled = true;
         }        
         #endregion
+        
         
         /********线程控制-------main()-----图像处理*******/
         private void timer2_Tick_1(object sender, EventArgs e)
@@ -948,8 +951,14 @@ namespace SimpleImageDisplaySample
         }
         #endregion
 
+        private void toolStripMenuItem_C_Click(object sender, EventArgs e)
+        {
+            calib_C cab_C = new calib_C();
+            cab_C.Show();
+        }
 
-
+       
+      
 #region /*注释补充*/
 /**************************************************/
 #region 注释--按一下处理图像并显示
