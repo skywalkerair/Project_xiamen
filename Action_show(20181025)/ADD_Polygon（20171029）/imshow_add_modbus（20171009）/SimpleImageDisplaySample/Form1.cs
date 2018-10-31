@@ -18,7 +18,7 @@ using Emgu.CV.VideoSurveillance;
 using System.Runtime.InteropServices; // 后面的[DllImport("kernel32")]
 using System.Drawing.Imaging;
 using System.Diagnostics;
-//导入自己的矩阵模块
+//导入自己的Matrix矩阵模块
 using matrix_test;
 //导入JAI
 using Jai_FactoryDotNET;
@@ -124,14 +124,6 @@ namespace SimpleImageDisplaySample
             #endregion     
         }
 
-        #region /*B相机__在相框3中显示*/
-        private void UpdateUI(object sender, ProgressChangedEventArgs e)
-        {
-           
-            pictureBox3.Image = m_processedImage.bitmap;
-            pictureBox3.Invalidate();     
-        }
-        #endregion
         private void Form1_Load(object sender, EventArgs e)
         {
             #region Fly相机__hide()
@@ -244,8 +236,16 @@ namespace SimpleImageDisplaySample
                 s = Convert.ToDouble(str.ToString());
             #endregion
         }
-           
+       
         /**************FLY-B相机*******************/
+        #region FLY-B相机
+        private void UpdateUI(object sender, ProgressChangedEventArgs e)
+        {
+           
+            pictureBox3.Image = m_processedImage.bitmap;
+            pictureBox3.Invalidate();     
+        }
+
         //Form1_FormClosing 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -374,8 +374,10 @@ namespace SimpleImageDisplaySample
             cab.Show();
             #endregion
         }
+        #endregion
 
-        /**********EgiE相机程序***********/
+        /**************JAI-A&&C相机*******************/
+        #region JAI-A&&C相机
         #region searching
         private void SearchButton_Click(object sender, EventArgs e)
         {
@@ -412,7 +414,6 @@ namespace SimpleImageDisplaySample
         //EgiE相机开始停止    
         private void StartButton_Click(object sender, EventArgs e)
         {
-            //#region 相机开始，停止按键
             if (myFactory.CameraList[0] != null)
             {
                 myFactory.CameraList[0].StartImageAcquisition(true, 5, pictureBox1.Handle);
@@ -425,11 +426,9 @@ namespace SimpleImageDisplaySample
             StartButton.Enabled = false;
             StopButton.Enabled = true;
             SearchButton.Enabled = true;
-           // #endregion
         }
         private void StopButton_Click(object sender, EventArgs e)
         {
-            #region Stop_0.JAI相机停止按键
             for (int i = 0; i < myFactory.CameraList.Count; i++)
             {
                 myFactory.CameraList[i].StopImageAcquisition();
@@ -438,28 +437,23 @@ namespace SimpleImageDisplaySample
             StartButton.Enabled = true;
             StopButton.Enabled = false;
             SearchButton.Enabled = true;
-            #endregion
- 
         }        
-        /*******关于图像处理程序**********/
-        //按一下处理图像并显示
-        //public void button_circle_Click_1(object sender, EventArgs e)
-        //{
-        //    #region 按键图像处理
-        //    Console.WriteLine("1");
-        //    myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
-        //    ImageProcess();
-        //    #endregion
-        //}
-        /********直接线程控制图像处理*******/
+        #endregion
+        
+        /********线程控制图像处理*******/
         private void timer2_Tick_1(object sender, EventArgs e)
         {
             #region 5000毫秒进入一次图像处理
-            Console.WriteLine("image processing!!!");
+            //Console.WriteLine("image processing!!!");
             myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
-            ImageProcess();
+            //TODO:增加一个相机的图像处理操作
+            myFactory.CameraList[1].SaveNextFrame(".\\saveimg1" + ".bmp");
 
-            Console.WriteLine("===Flag_t====" + Flag_t);
+            ImageProcess_A(".\\saveimg.bmp");
+
+            ImageProcess(".\\saveimg1.bmp");
+        
+            //Console.WriteLine("===Flag_t====" + Flag_t);
             string str1 = this.tbxSendText.Text.Trim().ToString();
 
             //x = 34.3333;
@@ -467,50 +461,11 @@ namespace SimpleImageDisplaySample
             //point_Y = (Int32)(circles[0].Center.Y);
             if (Flag_t == 0)
             {
-                Int32 x = (Int32)(world_X);
-                Int32 y = (Int32)(world_Y);
-                Console.WriteLine("传给modbus_x:" + x);
-                Console.WriteLine("传给modbus_y:" + y);
-                Int32 m = (Int32)(0.011);
-
-                byte[] a = BitConverter.GetBytes(x);
-                a = LittleEncodingFloat(a);
-                byte[] b = BitConverter.GetBytes(y);
-                b = LittleEncodingFloat(b);
-                byte[] c = BitConverter.GetBytes(m);
-                c = LittleEncodingFloat(c);
-                byte[] z = new byte[a.Length + b.Length + c.Length];
-                a.CopyTo(z, 0);
-                b.CopyTo(z, a.Length);
-                c.CopyTo(z, a.Length + b.Length);
-
-                // System.Console.WriteLine( x);
-                //System.Console.WriteLine( y);
-                this.Wrapper.Send(z);
-
+                SendDataToModBus(world_X,world_Y);  
             }
             else if (Flag_t == 1)
             {
-                Int32 x = (Int32)(world_X_circle);
-                Int32 y = (Int32)(world_Y_circle);
-                Console.WriteLine("传给modbus_x:" + x);
-                Console.WriteLine("传给modbus_y:" + y);
-                Int32 m = (Int32)(0.011);
-
-                byte[] a = BitConverter.GetBytes(x);
-                a = LittleEncodingFloat(a);
-                byte[] b = BitConverter.GetBytes(y);
-                b = LittleEncodingFloat(b);
-                byte[] c = BitConverter.GetBytes(m);
-                c = LittleEncodingFloat(c);
-                byte[] z = new byte[a.Length + b.Length + c.Length];
-                a.CopyTo(z, 0);
-                b.CopyTo(z, a.Length);
-                c.CopyTo(z, a.Length + b.Length);
-
-                // System.Console.WriteLine( x);
-                //System.Console.WriteLine( y);
-                this.Wrapper.Send(z);
+               //TODO:do something 
             }
             else
             {
@@ -519,16 +474,41 @@ namespace SimpleImageDisplaySample
 
             #endregion
         }
+
+
+        /********将世界坐标值传到机械手端*******/
+        private void SendDataToModBus(double WorldX,double WorldY)
+        {
+            Int32 x = (Int32)(WorldX);
+            Int32 y = (Int32)(WorldY);
+            Console.WriteLine("传给modbus_x:" + x);
+            Console.WriteLine("传给modbus_y:" + y);
+            Int32 m = (Int32)(0.011);
+
+            byte[] a = BitConverter.GetBytes(x);
+            a = LittleEncodingFloat(a);
+            byte[] b = BitConverter.GetBytes(y);
+            b = LittleEncodingFloat(b);
+            byte[] c = BitConverter.GetBytes(m);
+            c = LittleEncodingFloat(c);
+            byte[] z = new byte[a.Length + b.Length + c.Length];
+            a.CopyTo(z, 0);
+            b.CopyTo(z, a.Length);
+            c.CopyTo(z, a.Length + b.Length);
+            this.Wrapper.Send(z);
+        }
         
+        /*******关于图像处理程序**********/
         //图像处理程序模块
         #region 图像处理模块
-        private void ImageProcess()
+        private void ImageProcess_A(string ImagePath)
         {
-            //*canny*/
-            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(".\\saveimg" + ".bmp");
+            /*canny*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
             double cannyThreshold =200.0;
             double circleAccumulatorThreshold = 55;
+            
             #region Find circles
             /*检测圆形*/
             circles = grayImage.HoughCircles(
@@ -539,18 +519,8 @@ namespace SimpleImageDisplaySample
                 20, //min radius
                 0 //max radius
                 )[0]; //Get the circles from the first channel
-            //CircleF[] circles = grayImage.HoughCircles(new Gray(250), new Gray(74.471), 1.0, grayImage.Width,0, 0)[0];//第二个参数
-            /*在原图上画圆*/
-            // Image<Bgr, Byte> imageLines = new Image<Bgr, Byte>(".\\saveimg" + ".bmp"); 
-            // foreach (CircleF circle in circles)
-            // {
-            //    imageLines.Draw(circle, new Bgr(Color.Red), 2);
-            /*输出圆的圆心*/
-            //Console.WriteLine(circle.Center);
-            // }
             #endregion
             #region Canny and edge detection
-
             double cannyThresholdLinking = 100.0;
             Image<Gray, Byte> cannyEdges = grayImage.Canny(cannyThreshold, cannyThresholdLinking);
             LineSegment2D[] lines = cannyEdges.HoughLinesBinary(
@@ -562,13 +532,9 @@ namespace SimpleImageDisplaySample
                 )[0]; //Get the lines from the first channel
             #endregion
             #region Find triangles and rectangles
-
             List<Triangle2DF> triangleList = new List<Triangle2DF>();
             List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
-
-            List<MCvBox2D> pentagon = new List<MCvBox2D>();
             // PointF[] GetVertices();
-
             using (MemStorage storage = new MemStorage()) //allocate storage for contour approximation
                 for (
                    Contour<Point> contours = cannyEdges.FindContours(
@@ -584,7 +550,7 @@ namespace SimpleImageDisplaySample
                     {
                         if (currentContour.Total == 3) //The contour has 3 vertices, it is a triangle
                         {
-                            #region   triangle_detected
+                            #region triangle_detected
                             Point[] pts = currentContour.ToArray();
                             triangleList.Add(new Triangle2DF(
                                pts[0],
@@ -593,8 +559,7 @@ namespace SimpleImageDisplaySample
                                ));
                             #endregion
                         }
-
-                        else if (currentContour.Total == 4) //The contour has 4 vertices.
+                        else if(currentContour.Total == 4)  //The contour has 4 vertices.
                         {
                             #region determine if all the angles in the contour are within [80, 100] degree
                             bool isRectangle = true;
@@ -614,34 +579,14 @@ namespace SimpleImageDisplaySample
                             #endregion
                             if (isRectangle) boxList.Add(currentContour.GetMinAreaRect());
                         }
-
-                        else if (currentContour.Total == 5) //The contour has 5 vertices.
+                        else
                         {
-                            #region determine if all the angles in the contour are within [65, 80] degree  5555
-                            bool isPentagon = true;
-                            Point[] pts2 = currentContour.ToArray();
-                            // PointF[] p = p;
-                            LineSegment2D[] edges = PointCollection.PolyLine(pts2, true);
-
-                            for (int i = 0; i < edges.Length; i++)
-                            {
-                                double angle = Math.Abs(
-                                   edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
-                                if (angle < 65 || angle > 80)
-                                {
-                                    isPentagon = false;
-                                    break;
-                                }
-                            }
-                            #endregion
-                            if (isPentagon) pentagon.Add(currentContour.GetMinAreaRect());
-
+                            Console.WriteLine("The currentContour is more than 5!!!");
                         }
-
                     }
                 }
             #endregion
-            #region draw triangles and rectangles and pentagon
+            #region draw triangles and rectangles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(".\\saveimg" + ".bmp");
             foreach (Triangle2DF triangle in triangleList)
             {
@@ -661,13 +606,6 @@ namespace SimpleImageDisplaySample
                 //Console.WriteLine("Area Of rectangle :" + (box1.center.X*box1.center.Y));
             }
 
-            foreach (MCvBox2D pen in pentagon)
-            {
-                triangleRectangleImage.Draw(pen, new Bgr(Color.DarkOrange), 2);
-                //Console.WriteLine("Center Of rectangle_penta 1:" + pen.center);
-               // Console.WriteLine("Center Of rectangle_penta 2:" + pentagon[0].MinAreaRect());
-            }
-
             foreach (CircleF circle in circles)
             {
                 AreaCircle = (Int32)(circles[0].Area);
@@ -679,19 +617,13 @@ namespace SimpleImageDisplaySample
                     point_X_circle = (Int32)(circles[0].Center.X);
                     point_Y_circle = (Int32)(circles[0].Center.Y);
                 }
-
-                //Flag = 1;
-
-                //Console.WriteLine("circle_area:" + AreaCircle);
-              
-                //Console.WriteLine("circle-x:" + circles[0].Center.X);
-                //Console.WriteLine("circle-y:" + circles[0].Center.Y); //circle[0]或者circle[1]是指找到的圆中的第一个和第二个
-
             }
             #endregion
             //显示结果
             pictureBox_circle.Image = triangleRectangleImage.ToBitmap();
-            //point_X = (Int32)(box1.center.X);   //圆的x坐标和圆的y坐标 SimpleImageDisplaySample.Form1.box1”冲突	C:\Users\Administrator\Desktop\zsx__PC\20180108_PC_xiamen\5ADD_calib(20180108)\ADD_calib(20180108)_changing\ADD_Polygon（20171029）\imshow_add_modbus（20171009）\SimpleImageDisplaySample\Form1.cs	716	31	SimpleImageDisplaySample
+
+
+            //point_X = (Int32)(box1.center.X);   //圆的x坐标和圆的y坐标 
             //point_Y = (Int32)(box1.center.Y);
             //point_Y = (Int32)(circles[0].Center.Y);
             //Console.WriteLine("SimpleImageDisplaySample.Form1.box1.center.X:" + box1.center.X);
@@ -749,11 +681,11 @@ namespace SimpleImageDisplaySample
             {
                 Flag = 0;
             }
-            //Console.WriteLine("world__Y:" + number_y);
         }
         #endregion
 
         /**********Modbus程序***********/
+        #region ModBus程序
         #region Modbus 的传送的数据格式处理
         //private void btnSend_Click_1(object sender, EventArgs e)
         //{
@@ -832,8 +764,9 @@ namespace SimpleImageDisplaySample
             this.Wrapper.Dispose();
         }
         #endregion
-        
-        /******相机放大缩小*********/
+        #endregion
+
+        /**********相机放大缩小***********/
         #region zoom放大缩小
         private void ZoomInbutton_Click(object sender, EventArgs e)
         {
@@ -841,6 +774,7 @@ namespace SimpleImageDisplaySample
             if (myFactory.CameraList[0] != null)
                 myFactory.CameraList[0].ZoomIn();
         }
+
         private void ZoomResetbutton_Click(object sender, EventArgs e)
         {
             if (myFactory.CameraList[0] != null)
@@ -857,6 +791,62 @@ namespace SimpleImageDisplaySample
 
 #region /*注释补充*/
 /**************************************************/
+#region 注释--按一下处理图像并显示
+//
+//public void button_circle_Click_1(object sender, EventArgs e)
+//{
+//    #region 按键图像处理
+//    Console.WriteLine("1");
+//    myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
+//    ImageProcess();
+//    #endregion
+//}
+#endregion
+
+#region 注释--五角形的物体
+ // foreach (MCvBox2D pen in pentagon)
+            // {
+            //     triangleRectangleImage.Draw(pen, new Bgr(Color.DarkOrange), 2);
+            //     //Console.WriteLine("Center Of rectangle_penta 1:" + pen.center);
+            //    // Console.WriteLine("Center Of rectangle_penta 2:" + pentagon[0].MinAreaRect());
+            // }
+
+//List<MCvBox2D> pentagon = new List<MCvBox2D>();
+// else if (currentContour.Total == 5) //The contour has 5 vertices.
+// {
+//     #region determine if all the angles in the contour are within [65, 80] degree  5555
+//     bool isPentagon = true;
+//     Point[] pts2 = currentContour.ToArray();
+//     // PointF[] p = p;
+//     LineSegment2D[] edges = PointCollection.PolyLine(pts2, true);
+
+//     for (int i = 0; i < edges.Length; i++)
+//     {
+//         double angle = Math.Abs(
+//             edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
+//         if (angle < 65 || angle > 80)
+//         {
+//             isPentagon = false;
+//             break;
+//         }
+//     }
+//     #endregion
+//     if (isPentagon) pentagon.Add(currentContour.GetMinAreaRect());
+// }
+#endregion
+
+#region 注释--图像处理画圆
+            //CircleF[] circles = grayImage.HoughCircles(new Gray(250), new Gray(74.471), 1.0, grayImage.Width,0, 0)[0];//第二个参数
+            /*在原图上画圆*/
+            // Image<Bgr, Byte> imageLines = new Image<Bgr, Byte>(".\\saveimg" + ".bmp"); 
+            // foreach (CircleF circle in circles)
+            // {
+            //    imageLines.Draw(circle, new Bgr(Color.Red), 2);
+            /*输出圆的圆心*/
+            //Console.WriteLine(circle.Center);
+            // }
+#endregion
+    
 #region  /*Form_load结束*/  
     // Search for any new cameras using Filter Driver
     //myFactory.UpdateCameraList(Jai_FactoryDotNET.CFactory.EDriverType.FilterDriver);

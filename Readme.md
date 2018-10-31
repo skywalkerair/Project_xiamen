@@ -16,10 +16,11 @@
 ***20181025-任务***：
 
 1. 备份当前目录项目的文件（DONE）
-2. 将三个相机的图像处理都加进去
-3. 两个相机的位置定标问题，位置坐标解决方案,两套定标程序
-4. 是否需要在通讯端增加反馈
-5. 速度问题，提速
+2. 简化代码，只显示矩形和圆形
+3. 将三个相机的图像处理都加进去
+4. 两个相机的位置定标问题，位置坐标解决方案,两套定标程序
+5. 是否需要在通讯端增加反馈
+6. 速度问题，提速
 
 
 
@@ -28,6 +29,11 @@
 ---
 
 ***Git的使用说明***
+
+***Operation:***
+​	git add .
+​	git commit -m "XXXXXXX"
+​	git push 
 
 ~~~git
 ***Quick setup — if you’ve done this kind of thing before***
@@ -44,5 +50,7 @@ git push -u origin master
 git push -u origin master
 （3）…or import code from another repository
 You can initialize this repository with code from a Subversion, Mercurial, or TFS project.
+
+
 ~~~
 
