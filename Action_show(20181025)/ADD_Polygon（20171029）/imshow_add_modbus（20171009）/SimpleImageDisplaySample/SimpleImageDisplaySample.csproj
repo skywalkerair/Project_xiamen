@@ -134,6 +134,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SocketWrapper.cs" />
     <Compile Include="ValueHelper.cs" />
+    <Compile Include="calib_B.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="calib_B.designer.cs">
+      <DependentUpon>calib_B.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="calib.resx">
       <DependentUpon>calib.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -152,6 +158,10 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="calib_B.resx">
+      <DependentUpon>calib_B.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>

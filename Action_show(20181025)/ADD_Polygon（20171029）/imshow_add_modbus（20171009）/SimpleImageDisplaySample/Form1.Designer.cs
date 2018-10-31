@@ -35,9 +35,9 @@ namespace SimpleImageDisplaySample
             this.SearchButton = new System.Windows.Forms.Button();
             this.StartButton = new System.Windows.Forms.Button();
             this.StopButton = new System.Windows.Forms.Button();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.pictureBox_A = new System.Windows.Forms.PictureBox();
+            this.pictureBox_B = new System.Windows.Forms.PictureBox();
+            this.pictureBox_C = new System.Windows.Forms.PictureBox();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripButtonStart = new System.Windows.Forms.ToolStripButton();
@@ -47,7 +47,7 @@ namespace SimpleImageDisplaySample
             this.tbxSendText = new System.Windows.Forms.TextBox();
             this.btnSend = new System.Windows.Forms.Button();
             this.tbxHistory = new System.Windows.Forms.RichTextBox();
-            this.pictureBox_circle = new System.Windows.Forms.PictureBox();
+            this.pictureBox_A_processed = new System.Windows.Forms.PictureBox();
             this.button_circle = new System.Windows.Forms.Button();
             this.ZoomInbutton = new System.Windows.Forms.Button();
             this.ZoomResetbutton = new System.Windows.Forms.Button();
@@ -59,11 +59,11 @@ namespace SimpleImageDisplaySample
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C)).BeginInit();
             this.toolStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_circle)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -118,35 +118,35 @@ namespace SimpleImageDisplaySample
             this.StopButton.UseVisualStyleBackColor = true;
             this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
             // 
-            // pictureBox1
+            // pictureBox_A
             // 
-            this.pictureBox1.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 142);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(342, 343);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 6;
-            this.pictureBox1.TabStop = false;
+            this.pictureBox_A.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_A.Location = new System.Drawing.Point(12, 142);
+            this.pictureBox_A.Name = "pictureBox_A";
+            this.pictureBox_A.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_A.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_A.TabIndex = 6;
+            this.pictureBox_A.TabStop = false;
             // 
-            // pictureBox2
+            // pictureBox_B
             // 
-            this.pictureBox2.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox2.Location = new System.Drawing.Point(12, 507);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(342, 303);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 10;
-            this.pictureBox2.TabStop = false;
+            this.pictureBox_B.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_B.Location = new System.Drawing.Point(12, 507);
+            this.pictureBox_B.Name = "pictureBox_B";
+            this.pictureBox_B.Size = new System.Drawing.Size(342, 303);
+            this.pictureBox_B.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_B.TabIndex = 10;
+            this.pictureBox_B.TabStop = false;
             // 
-            // pictureBox3
+            // pictureBox_C
             // 
-            this.pictureBox3.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox3.Location = new System.Drawing.Point(770, 142);
-            this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new System.Drawing.Size(342, 343);
-            this.pictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox3.TabIndex = 11;
-            this.pictureBox3.TabStop = false;
+            this.pictureBox_C.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_C.Location = new System.Drawing.Point(770, 142);
+            this.pictureBox_C.Name = "pictureBox_C";
+            this.pictureBox_C.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_C.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_C.TabIndex = 11;
+            this.pictureBox_C.TabStop = false;
             // 
             // toolStrip1
             // 
@@ -237,15 +237,15 @@ namespace SimpleImageDisplaySample
             this.tbxHistory.TabIndex = 17;
             this.tbxHistory.Text = "";
             // 
-            // pictureBox_circle
+            // pictureBox_A_processed
             // 
-            this.pictureBox_circle.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_circle.Location = new System.Drawing.Point(410, 142);
-            this.pictureBox_circle.Name = "pictureBox_circle";
-            this.pictureBox_circle.Size = new System.Drawing.Size(342, 343);
-            this.pictureBox_circle.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox_circle.TabIndex = 18;
-            this.pictureBox_circle.TabStop = false;
+            this.pictureBox_A_processed.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_A_processed.Location = new System.Drawing.Point(410, 142);
+            this.pictureBox_A_processed.Name = "pictureBox_A_processed";
+            this.pictureBox_A_processed.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_A_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_A_processed.TabIndex = 18;
+            this.pictureBox_A_processed.TabStop = false;
             // 
             // button_circle
             // 
@@ -294,7 +294,7 @@ namespace SimpleImageDisplaySample
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(72, 16);
             this.label1.TabIndex = 30;
-            this.label1.Text = "Camera_1";
+            this.label1.Text = "Camera_A";
             // 
             // label2
             // 
@@ -304,7 +304,7 @@ namespace SimpleImageDisplaySample
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(72, 16);
             this.label2.TabIndex = 30;
-            this.label2.Text = "Camera_2";
+            this.label2.Text = "Camera_B";
             // 
             // label3
             // 
@@ -314,7 +314,7 @@ namespace SimpleImageDisplaySample
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(152, 16);
             this.label3.TabIndex = 30;
-            this.label3.Text = "Camera_1_processed";
+            this.label3.Text = "Camera_A_processed";
             // 
             // label4
             // 
@@ -324,7 +324,7 @@ namespace SimpleImageDisplaySample
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(72, 16);
             this.label4.TabIndex = 30;
-            this.label4.Text = "Camera_3";
+            this.label4.Text = "Camera_C";
             // 
             // timer1
             // 
@@ -350,15 +350,15 @@ namespace SimpleImageDisplaySample
             this.Controls.Add(this.ZoomResetbutton);
             this.Controls.Add(this.ZoomInbutton);
             this.Controls.Add(this.button_circle);
-            this.Controls.Add(this.pictureBox_circle);
+            this.Controls.Add(this.pictureBox_A_processed);
             this.Controls.Add(this.tbxHistory);
             this.Controls.Add(this.btnSend);
             this.Controls.Add(this.tbxSendText);
             this.Controls.Add(this.toolStripMenuItem1);
             this.Controls.Add(this.toolStrip1);
-            this.Controls.Add(this.pictureBox3);
-            this.Controls.Add(this.pictureBox2);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.pictureBox_C);
+            this.Controls.Add(this.pictureBox_B);
+            this.Controls.Add(this.pictureBox_A);
             this.Controls.Add(this.StopButton);
             this.Controls.Add(this.StartButton);
             this.Controls.Add(this.groupBox1);
@@ -367,12 +367,12 @@ namespace SimpleImageDisplaySample
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TestModBus_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C)).EndInit();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_circle)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -384,10 +384,12 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Button StartButton;
         private System.Windows.Forms.Button StopButton;
         private System.Windows.Forms.Button SearchButton;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBox_A;
         private System.Windows.Forms.ListBox camListBox;
-        private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.PictureBox pictureBox3;
+        //
+        private System.Windows.Forms.PictureBox pictureBox_B;
+        //
+        private System.Windows.Forms.PictureBox pictureBox_C;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripButton toolStripButtonStart;
@@ -397,7 +399,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.TextBox tbxSendText;
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.RichTextBox tbxHistory;
-        private System.Windows.Forms.PictureBox pictureBox_circle;
+        private System.Windows.Forms.PictureBox pictureBox_A_processed;
         private System.Windows.Forms.Button button_circle;
         private System.Windows.Forms.Button ZoomInbutton;
         private System.Windows.Forms.Button ZoomResetbutton;

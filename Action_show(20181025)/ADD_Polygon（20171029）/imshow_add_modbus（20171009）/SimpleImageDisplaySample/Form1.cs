@@ -33,6 +33,21 @@ namespace SimpleImageDisplaySample
     public partial class Form1 : Form,ILog,IDisposable
     {
         #region 声明全局变量
+            #region /*设置区分长方形，正方形和圆形的标志位*/
+            int Flag = 0;
+            int Flag_t = 1;
+    
+            int AreaCircle;
+
+            int point_X, point_Y;
+            int point_X_circle, point_Y_circle;
+
+            double world_X, world_Y;
+            //TODO 待删减
+            double world_X_circle, world_Y_circle; 
+
+            #endregion 
+
             #region /*ini文件变量声明*/
         //系统文件用来读取ini文件
         [DllImport("kernel32")]
@@ -42,20 +57,7 @@ namespace SimpleImageDisplaySample
             #region /*定标变量声明*/
         //图像坐标与世界坐标初始化
         public static double fc1, fc2, cc1, cc2, R11, R12, R13, R21, R22, R23, T1, T2, T3, s;
-      
-        //设置一个Flag来区分矩形和圆形
-        int Flag = 0;
-        int Flag_t = 1;
-  
-        int AreaCircle;
-
-        int point_X, point_Y;
-        int point_X_circle, point_Y_circle;
-
-        double world_X, world_Y;
-        //TODO 待删减
-        double world_X_circle, world_Y_circle; 
-
+    
         double[,] c = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] c_ = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] world_cor = new double[3, 1] { { 0 }, { 0 }, { 1 } };
@@ -189,7 +191,7 @@ namespace SimpleImageDisplaySample
             //TODO:Show()函数试一下什么效果
             //Show();
             #endregion
-            #region 定标参数的初始化
+            #region A相机_定标参数的初始化
             //加载标定参数
             StringBuilder str = new StringBuilder(100);
             GetPrivateProfileString("标定", "fc1", "", str, 100, Application.StartupPath + "/calib2.ini");
@@ -235,6 +237,52 @@ namespace SimpleImageDisplaySample
             if (str.ToString() != "")
                 s = Convert.ToDouble(str.ToString());
             #endregion
+            #region B相机_定标参数的初始化
+            //加载标定参数
+            StringBuilder str_B = new StringBuilder(100);
+            GetPrivateProfileString("标定", "fc1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                fc1 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "fc2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                fc2 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "cc1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                cc1 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "cc2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                cc2 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R11", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R11 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R12", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R12 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R13", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R13 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R21", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R21 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R22", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R22 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "R23", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                R23 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "T1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                T1 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "T2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                T2 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "T3", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                T3 = Convert.ToDouble(str.ToString());
+            GetPrivateProfileString("标定", "s", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
+            if (str.ToString() != "")
+                s = Convert.ToDouble(str_B.ToString());
+            #endregion
         }
        
         /**************FLY-B相机*******************/
@@ -242,8 +290,8 @@ namespace SimpleImageDisplaySample
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
            
-            pictureBox3.Image = m_processedImage.bitmap;
-            pictureBox3.Invalidate();     
+            pictureBox_C.Image = m_processedImage.bitmap;
+            pictureBox_C.Invalidate();     
         }
 
         //Form1_FormClosing 
@@ -416,11 +464,11 @@ namespace SimpleImageDisplaySample
         {
             if (myFactory.CameraList[0] != null)
             {
-                myFactory.CameraList[0].StartImageAcquisition(true, 5, pictureBox1.Handle);
+                myFactory.CameraList[0].StartImageAcquisition(true, 5, pictureBox_A.Handle);
             }
             if (myFactory.CameraList[1] != null)
             {
-                myFactory.CameraList[1].StartImageAcquisition(true, 5, pictureBox2.Handle);
+                myFactory.CameraList[1].StartImageAcquisition(true, 5, pictureBox_B.Handle);
             }
 
             StartButton.Enabled = false;
@@ -440,7 +488,7 @@ namespace SimpleImageDisplaySample
         }        
         #endregion
         
-        /********线程控制图像处理*******/
+        /********线程控制-------main()-----图像处理*******/
         private void timer2_Tick_1(object sender, EventArgs e)
         {
             #region 5000毫秒进入一次图像处理
@@ -451,7 +499,7 @@ namespace SimpleImageDisplaySample
 
             ImageProcess_A(".\\saveimg.bmp");
 
-            ImageProcess(".\\saveimg1.bmp");
+            ImageProcess_B(".\\saveimg1.bmp");
         
             //Console.WriteLine("===Flag_t====" + Flag_t);
             string str1 = this.tbxSendText.Text.Trim().ToString();
@@ -500,10 +548,11 @@ namespace SimpleImageDisplaySample
         
         /*******关于图像处理程序**********/
         //图像处理程序模块
-        #region 图像处理模块
+  
+        #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
-            /*canny*/
+            /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
             double cannyThreshold =200.0;
@@ -520,19 +569,22 @@ namespace SimpleImageDisplaySample
                 0 //max radius
                 )[0]; //Get the circles from the first channel
             #endregion
+            
             #region Canny and edge detection
             double cannyThresholdLinking = 100.0;
             Image<Gray, Byte> cannyEdges = grayImage.Canny(cannyThreshold, cannyThresholdLinking);
-            LineSegment2D[] lines = cannyEdges.HoughLinesBinary(
-                1, //Distance resolution in pixel-related units
-                Math.PI / 90.0, //Angle resolution measured in radians.
-                20, //threshold
-                30, //min Line width
-                10 //gap between lines
-                )[0]; //Get the lines from the first channel
+            //TODO:将LineSegment2D[] lines去掉看看效果
+            // LineSegment2D[] lines = cannyEdges.HoughLinesBinary(
+            //     1, //Distance resolution in pixel-related units
+            //     Math.PI / 90.0, //Angle resolution measured in radians.
+            //     20, //threshold
+            //     30, //min Line width
+            //     10 //gap between lines
+            //     )[0]; //Get the lines from the first channel
             #endregion
-            #region Find triangles and rectangles
-            List<Triangle2DF> triangleList = new List<Triangle2DF>();
+            
+            #region search rectangles
+            //存放矩形的形状
             List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
             // PointF[] GetVertices();
             using (MemStorage storage = new MemStorage()) //allocate storage for contour approximation
@@ -548,18 +600,7 @@ namespace SimpleImageDisplaySample
 
                     if (currentContour.Area >400) //only consider contours with area greater than 4300
                     {
-                        if (currentContour.Total == 3) //The contour has 3 vertices, it is a triangle
-                        {
-                            #region triangle_detected
-                            Point[] pts = currentContour.ToArray();
-                            triangleList.Add(new Triangle2DF(
-                               pts[0],
-                               pts[1],
-                               pts[2]
-                               ));
-                            #endregion
-                        }
-                        else if(currentContour.Total == 4)  //The contour has 4 vertices.
+                        if(currentContour.Total == 4)  //The contour has 4 vertices.
                         {
                             #region determine if all the angles in the contour are within [80, 100] degree
                             bool isRectangle = true;
@@ -586,26 +627,19 @@ namespace SimpleImageDisplaySample
                     }
                 }
             #endregion
-            #region draw triangles and rectangles
-            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(".\\saveimg" + ".bmp");
-            foreach (Triangle2DF triangle in triangleList)
-            {
-                triangleRectangleImage.Draw(triangle, new Bgr(Color.DarkBlue), 2);
-                Console.WriteLine("Center Of Triangle :" + triangle.Centeroid);
-            }
+            
+            #region draw rectangles
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            //draw the rectangles
             foreach (MCvBox2D box1 in boxList)
             {
                 triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
-                //Console.WriteLine("Center Of rectangle1 :" + boxList[0].center);
-               // Console.WriteLine("Center Of rectangle2 :"+ boxList);
+             
                 //图像中x,y的坐标位置
                 point_X = (Int32)(boxList[0].center.X);
                 point_Y = (Int32)(boxList[0].center.Y);
-                //Flag = 0;
-                //AreaRect = (Int32)(boxList[0].center.X * boxList[0].center.Y);
-                //Console.WriteLine("Area Of rectangle :" + (box1.center.X*box1.center.Y));
             }
-
+            //draw the circles
             foreach (CircleF circle in circles)
             {
                 AreaCircle = (Int32)(circles[0].Area);
@@ -613,24 +647,19 @@ namespace SimpleImageDisplaySample
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                     /*输出圆的圆心*/
-                    //Console.WriteLine("Center Of Circle:" + circle.Center);
+        
                     point_X_circle = (Int32)(circles[0].Center.X);
                     point_Y_circle = (Int32)(circles[0].Center.Y);
                 }
             }
             #endregion
-            //显示结果
-            pictureBox_circle.Image = triangleRectangleImage.ToBitmap();
+            
+            /*显示结果，在A相机的图像中显示出来*/
+            pictureBox_A_processed.Image = triangleRectangleImage.ToBitmap();
 
-
-            //point_X = (Int32)(box1.center.X);   //圆的x坐标和圆的y坐标 
-            //point_Y = (Int32)(box1.center.Y);
-            //point_Y = (Int32)(circles[0].Center.Y);
-            //Console.WriteLine("SimpleImageDisplaySample.Form1.box1.center.X:" + box1.center.X);
             double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
              
-            //Area
             if (Flag == 0)
             { 
                 //rectangle_location
@@ -639,20 +668,11 @@ namespace SimpleImageDisplaySample
                 Matrix.MatrixMultiply(a, b, ref c);
                 Matrix.MatrixOpp(c, ref c_);
                 Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
-                //Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+
                 world_X = (world_cor[0, 0] / s) * 1000;
                 world_Y = (world_cor[1, 0] / s) * 1000;
-                //point_X = (Int32)(circles[0].Center.X);   //圆的x坐标和圆的y坐标
-                //point_Y = (Int32)(circles[0].Center.Y);
-                //int number_x = (int)(world_X);
-                //int number_y = (int)(world_Y);
-                //Console.WriteLine("point_X:" + point_X);
-                //Console.WriteLine("point_Y:" + point_Y);
-                //Console.WriteLine("world_initial_X:" + world_X);
-                //Console.WriteLine("world_initial_Y:" + world_Y);
-                Flag_t = Flag_t - 1;
+
                 Flag = 1;
-                //Console.WriteLine("world__X:" + number_x);
             }
             else if (Flag == 1)
             {
@@ -662,20 +682,11 @@ namespace SimpleImageDisplaySample
                 Matrix.MatrixMultiply(a, b, ref c);
                 Matrix.MatrixOpp(c, ref c_);
                 Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
-                //Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+
                 world_X_circle = (world_cor[0, 0] / s) * 1000;
                 world_Y_circle = (world_cor[1, 0] / s) * 1000;
-                //point_X = (Int32)(circles[0].Center.X);   //圆的x坐标和圆的y坐标
-                //point_Y = (Int32)(circles[0].Center.Y);
-                //int number_x = (int)(world_X);
-                //int number_y = (int)(world_Y);
-                //Console.WriteLine("point_X:" + point_X_circle);
-                //Console.WriteLine("point_Y:" + point_Y_circle);
-               // Console.WriteLine("world_initial_X:" + world_X);
-                //Console.WriteLine("world_initial_Y:" + world_Y);
-                Flag_t = Flag_t + 1;
+              
                 Flag = 0;
-                //Console.WriteLine("world__X:" + number_x);
             }
             else
             {
@@ -683,7 +694,156 @@ namespace SimpleImageDisplaySample
             }
         }
         #endregion
+        
+        #region 相机B的处理过程
+        private void ImageProcess_B(string ImagePath)
+        {
+            /*canny算子处理图像*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
+            Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+            double cannyThreshold =200.0;
+            double circleAccumulatorThreshold = 55;
+            
+            #region Find circles
+            /*检测圆形*/
+            circles = grayImage.HoughCircles(
+                new Gray(cannyThreshold),
+                new Gray(circleAccumulatorThreshold),
+                2.0, //Resolution of the accumulator used to detect centers of the circles
+                grayImage.Width, //min distance 
+                20, //min radius
+                0 //max radius
+                )[0]; //Get the circles from the first channel
+            #endregion
+            
+            #region Canny and edge detection
+            double cannyThresholdLinking = 100.0;
+            Image<Gray, Byte> cannyEdges = grayImage.Canny(cannyThreshold, cannyThresholdLinking);
+            //TODO:将LineSegment2D[] lines去掉看看效果
+            // LineSegment2D[] lines = cannyEdges.HoughLinesBinary(
+            //     1, //Distance resolution in pixel-related units
+            //     Math.PI / 90.0, //Angle resolution measured in radians.
+            //     20, //threshold
+            //     30, //min Line width
+            //     10 //gap between lines
+            //     )[0]; //Get the lines from the first channel
+            #endregion
+            
+            #region search rectangles
+            //存放矩形的形状
+            List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
+            // PointF[] GetVertices();
+            using (MemStorage storage = new MemStorage()) //allocate storage for contour approximation
+                for (
+                   Contour<Point> contours = cannyEdges.FindContours(
+                      Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
+                      Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
+                      storage);
+                   contours != null;
+                   contours = contours.HNext)
+                {
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage);//注意这里的The desired approximation accuracy为0.04
 
+                    if (currentContour.Area >400) //only consider contours with area greater than 4300
+                    {
+                        if(currentContour.Total == 4)  //The contour has 4 vertices.
+                        {
+                            #region determine if all the angles in the contour are within [80, 100] degree
+                            bool isRectangle = true;
+                            Point[] pts = currentContour.ToArray();
+                            LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
+
+                            for (int i = 0; i < edges.Length; i++)
+                            {
+                                double angle = Math.Abs(
+                                   edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
+                                if (angle < 80 || angle > 100)
+                                {
+                                    isRectangle = false;
+                                    break;
+                                }
+                            }
+                            #endregion
+                            if (isRectangle) boxList.Add(currentContour.GetMinAreaRect());
+                        }
+                        else
+                        {
+                            Console.WriteLine("The currentContour is more than 5!!!");
+                        }
+                    }
+                }
+            #endregion
+            
+            #region draw rectangles
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            //draw the rectangles
+            foreach (MCvBox2D box1 in boxList)
+            {
+                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
+             
+                //图像中x,y的坐标位置
+                point_X = (Int32)(boxList[0].center.X);
+                point_Y = (Int32)(boxList[0].center.Y);
+            }
+            //draw the circles
+            foreach (CircleF circle in circles)
+            {
+                AreaCircle = (Int32)(circles[0].Area);
+                if (AreaCircle >= 4000 && AreaCircle <= 4600)
+                {
+                    triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
+                    /*输出圆的圆心*/
+        
+                    point_X_circle = (Int32)(circles[0].Center.X);
+                    point_Y_circle = (Int32)(circles[0].Center.Y);
+                }
+            }
+            #endregion
+            //TODO:A相机和B相机之间的差别就在显示框的位置的不同
+            /*显示结果，在B相机的图像中显示出来*/
+            pictureBox_B.Image = triangleRectangleImage.ToBitmap();
+
+            double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
+            double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
+             
+            if (Flag == 0)
+            { 
+                //rectangle_location
+                double[,] image_pix = new double[3, 1] { { point_X }, { point_Y }, { 1 } };
+
+                Matrix.MatrixMultiply(a, b, ref c);
+                Matrix.MatrixOpp(c, ref c_);
+                Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+
+                world_X = (world_cor[0, 0] / s) * 1000;
+                world_Y = (world_cor[1, 0] / s) * 1000;
+
+                Flag = 1;
+            }
+            else if (Flag == 1)
+            {
+                //circle_location
+                double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
+
+                Matrix.MatrixMultiply(a, b, ref c);
+                Matrix.MatrixOpp(c, ref c_);
+                Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+
+                world_X_circle = (world_cor[0, 0] / s) * 1000;
+                world_Y_circle = (world_cor[1, 0] / s) * 1000;
+              
+                Flag = 0;
+            }
+            else
+            {
+                Flag = 0;
+            }
+        }
+        #endregion
+        
+        
+
+        
         /**********Modbus程序***********/
         #region ModBus程序
         #region Modbus 的传送的数据格式处理
@@ -787,6 +947,7 @@ namespace SimpleImageDisplaySample
                 myFactory.CameraList[0].ZoomOut();
         }
         #endregion
+
 
 
 #region /*注释补充*/
