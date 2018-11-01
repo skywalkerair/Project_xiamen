@@ -46,22 +46,24 @@ namespace SimpleImageDisplaySample
             this.toolStripMenuItem1 = new System.Windows.Forms.Button();
             this.tbxHistory = new System.Windows.Forms.RichTextBox();
             this.pictureBox_A_processed = new System.Windows.Forms.PictureBox();
-            this.ZoomInbutton = new System.Windows.Forms.Button();
-            this.ZoomResetbutton = new System.Windows.Forms.Button();
-            this.ZoomOutbutton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.toolStripMenuItem_C = new System.Windows.Forms.Button();
+            this.pictureBox_C_processed = new System.Windows.Forms.PictureBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.pictureBox_Processing = new System.Windows.Forms.PictureBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C)).BeginInit();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Processing)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -79,7 +81,7 @@ namespace SimpleImageDisplaySample
             // 
             this.camListBox.FormattingEnabled = true;
             this.camListBox.ItemHeight = 12;
-            this.camListBox.Location = new System.Drawing.Point(9, 16);
+            this.camListBox.Location = new System.Drawing.Point(0, 13);
             this.camListBox.Name = "camListBox";
             this.camListBox.Size = new System.Drawing.Size(473, 40);
             this.camListBox.TabIndex = 7;
@@ -97,7 +99,7 @@ namespace SimpleImageDisplaySample
             // StartButton
             // 
             this.StartButton.Enabled = false;
-            this.StartButton.Location = new System.Drawing.Point(35, 83);
+            this.StartButton.Location = new System.Drawing.Point(785, 24);
             this.StartButton.Name = "StartButton";
             this.StartButton.Size = new System.Drawing.Size(75, 21);
             this.StartButton.TabIndex = 2;
@@ -108,7 +110,7 @@ namespace SimpleImageDisplaySample
             // StopButton
             // 
             this.StopButton.Enabled = false;
-            this.StopButton.Location = new System.Drawing.Point(144, 83);
+            this.StopButton.Location = new System.Drawing.Point(866, 24);
             this.StopButton.Name = "StopButton";
             this.StopButton.Size = new System.Drawing.Size(75, 21);
             this.StopButton.TabIndex = 3;
@@ -119,9 +121,9 @@ namespace SimpleImageDisplaySample
             // pictureBox_A
             // 
             this.pictureBox_A.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_A.Location = new System.Drawing.Point(12, 142);
+            this.pictureBox_A.Location = new System.Drawing.Point(12, 83);
             this.pictureBox_A.Name = "pictureBox_A";
-            this.pictureBox_A.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_A.Size = new System.Drawing.Size(367, 343);
             this.pictureBox_A.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_A.TabIndex = 6;
             this.pictureBox_A.TabStop = false;
@@ -129,9 +131,9 @@ namespace SimpleImageDisplaySample
             // pictureBox_B
             // 
             this.pictureBox_B.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_B.Location = new System.Drawing.Point(12, 507);
+            this.pictureBox_B.Location = new System.Drawing.Point(385, 83);
             this.pictureBox_B.Name = "pictureBox_B";
-            this.pictureBox_B.Size = new System.Drawing.Size(342, 303);
+            this.pictureBox_B.Size = new System.Drawing.Size(367, 343);
             this.pictureBox_B.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_B.TabIndex = 10;
             this.pictureBox_B.TabStop = false;
@@ -139,9 +141,9 @@ namespace SimpleImageDisplaySample
             // pictureBox_C
             // 
             this.pictureBox_C.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_C.Location = new System.Drawing.Point(770, 142);
+            this.pictureBox_C.Location = new System.Drawing.Point(758, 83);
             this.pictureBox_C.Name = "pictureBox_C";
-            this.pictureBox_C.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_C.Size = new System.Drawing.Size(367, 343);
             this.pictureBox_C.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_C.TabIndex = 11;
             this.pictureBox_C.TabStop = false;
@@ -189,6 +191,7 @@ namespace SimpleImageDisplaySample
             this.toolStripButtonStop.Name = "toolStripButtonStop";
             this.toolStripButtonStop.Size = new System.Drawing.Size(30, 32);
             this.toolStripButtonStop.Text = "Stop";
+            this.toolStripButtonStop.Click += new System.EventHandler(this.toolStripButtonStop_Click);
             // 
             // toolStripButtonCameraControl
             // 
@@ -203,7 +206,7 @@ namespace SimpleImageDisplaySample
             // 
             // toolStripMenuItem1
             // 
-            this.toolStripMenuItem1.Location = new System.Drawing.Point(35, 110);
+            this.toolStripMenuItem1.Location = new System.Drawing.Point(785, 51);
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(75, 23);
             this.toolStripMenuItem1.TabIndex = 13;
@@ -213,57 +216,27 @@ namespace SimpleImageDisplaySample
             // 
             // tbxHistory
             // 
-            this.tbxHistory.Location = new System.Drawing.Point(243, 73);
+            this.tbxHistory.Location = new System.Drawing.Point(947, 14);
             this.tbxHistory.Name = "tbxHistory";
-            this.tbxHistory.Size = new System.Drawing.Size(524, 63);
+            this.tbxHistory.Size = new System.Drawing.Size(209, 63);
             this.tbxHistory.TabIndex = 17;
             this.tbxHistory.Text = "";
             // 
             // pictureBox_A_processed
             // 
             this.pictureBox_A_processed.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_A_processed.Location = new System.Drawing.Point(410, 142);
+            this.pictureBox_A_processed.Location = new System.Drawing.Point(12, 448);
             this.pictureBox_A_processed.Name = "pictureBox_A_processed";
-            this.pictureBox_A_processed.Size = new System.Drawing.Size(342, 343);
+            this.pictureBox_A_processed.Size = new System.Drawing.Size(367, 343);
             this.pictureBox_A_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_A_processed.TabIndex = 18;
             this.pictureBox_A_processed.TabStop = false;
-            // 
-            // ZoomInbutton
-            // 
-            this.ZoomInbutton.Image = ((System.Drawing.Image)(resources.GetObject("ZoomInbutton.Image")));
-            this.ZoomInbutton.Location = new System.Drawing.Point(360, 219);
-            this.ZoomInbutton.Name = "ZoomInbutton";
-            this.ZoomInbutton.Size = new System.Drawing.Size(44, 41);
-            this.ZoomInbutton.TabIndex = 20;
-            this.ZoomInbutton.UseVisualStyleBackColor = true;
-            this.ZoomInbutton.Click += new System.EventHandler(this.ZoomInbutton_Click);
-            // 
-            // ZoomResetbutton
-            // 
-            this.ZoomResetbutton.Image = ((System.Drawing.Image)(resources.GetObject("ZoomResetbutton.Image")));
-            this.ZoomResetbutton.Location = new System.Drawing.Point(360, 291);
-            this.ZoomResetbutton.Name = "ZoomResetbutton";
-            this.ZoomResetbutton.Size = new System.Drawing.Size(44, 41);
-            this.ZoomResetbutton.TabIndex = 20;
-            this.ZoomResetbutton.UseVisualStyleBackColor = true;
-            this.ZoomResetbutton.Click += new System.EventHandler(this.ZoomResetbutton_Click);
-            // 
-            // ZoomOutbutton
-            // 
-            this.ZoomOutbutton.Image = ((System.Drawing.Image)(resources.GetObject("ZoomOutbutton.Image")));
-            this.ZoomOutbutton.Location = new System.Drawing.Point(360, 363);
-            this.ZoomOutbutton.Name = "ZoomOutbutton";
-            this.ZoomOutbutton.Size = new System.Drawing.Size(44, 41);
-            this.ZoomOutbutton.TabIndex = 20;
-            this.ZoomOutbutton.UseVisualStyleBackColor = true;
-            this.ZoomOutbutton.Click += new System.EventHandler(this.ZoomOutbutton_Click);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label1.Location = new System.Drawing.Point(123, 488);
+            this.label1.Location = new System.Drawing.Point(131, 429);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(72, 16);
             this.label1.TabIndex = 30;
@@ -273,7 +246,7 @@ namespace SimpleImageDisplaySample
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label2.Location = new System.Drawing.Point(106, 813);
+            this.label2.Location = new System.Drawing.Point(549, 429);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(72, 16);
             this.label2.TabIndex = 30;
@@ -283,7 +256,7 @@ namespace SimpleImageDisplaySample
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label3.Location = new System.Drawing.Point(510, 488);
+            this.label3.Location = new System.Drawing.Point(89, 794);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(152, 16);
             this.label3.TabIndex = 30;
@@ -293,26 +266,21 @@ namespace SimpleImageDisplaySample
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label4.Location = new System.Drawing.Point(909, 488);
+            this.label4.Location = new System.Drawing.Point(913, 429);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(72, 16);
             this.label4.TabIndex = 30;
             this.label4.Text = "Camera_C";
             // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
-            // 
             // timer2
             // 
             this.timer2.Enabled = true;
-            this.timer2.Interval = 2000;
+            this.timer2.Interval = 1000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick_1);
             // 
             // toolStripMenuItem_C
             // 
-            this.toolStripMenuItem_C.Location = new System.Drawing.Point(144, 110);
+            this.toolStripMenuItem_C.Location = new System.Drawing.Point(866, 51);
             this.toolStripMenuItem_C.Name = "toolStripMenuItem_C";
             this.toolStripMenuItem_C.Size = new System.Drawing.Size(75, 23);
             this.toolStripMenuItem_C.TabIndex = 31;
@@ -320,21 +288,62 @@ namespace SimpleImageDisplaySample
             this.toolStripMenuItem_C.UseVisualStyleBackColor = true;
             this.toolStripMenuItem_C.Click += new System.EventHandler(this.toolStripMenuItem_C_Click);
             // 
+            // pictureBox_C_processed
+            // 
+            this.pictureBox_C_processed.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_C_processed.Location = new System.Drawing.Point(758, 448);
+            this.pictureBox_C_processed.Name = "pictureBox_C_processed";
+            this.pictureBox_C_processed.Size = new System.Drawing.Size(367, 343);
+            this.pictureBox_C_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_C_processed.TabIndex = 32;
+            this.pictureBox_C_processed.TabStop = false;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label5.Location = new System.Drawing.Point(873, 794);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(152, 16);
+            this.label5.TabIndex = 33;
+            this.label5.Text = "Camera_C_processed";
+            // 
+            // pictureBox_Processing
+            // 
+            this.pictureBox_Processing.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_Processing.Location = new System.Drawing.Point(385, 448);
+            this.pictureBox_Processing.Name = "pictureBox_Processing";
+            this.pictureBox_Processing.Size = new System.Drawing.Size(367, 343);
+            this.pictureBox_Processing.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_Processing.TabIndex = 34;
+            this.pictureBox_Processing.TabStop = false;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label6.Location = new System.Drawing.Point(521, 793);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(88, 16);
+            this.label6.TabIndex = 35;
+            this.label6.Text = "processing";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1376, 865);
+            this.ClientSize = new System.Drawing.Size(1376, 818);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.pictureBox_Processing);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.pictureBox_C_processed);
             this.Controls.Add(this.toolStripMenuItem_C);
             this.Controls.Add(this.label4);
+            this.Controls.Add(this.tbxHistory);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.ZoomOutbutton);
-            this.Controls.Add(this.ZoomResetbutton);
-            this.Controls.Add(this.ZoomInbutton);
             this.Controls.Add(this.pictureBox_A_processed);
-            this.Controls.Add(this.tbxHistory);
             this.Controls.Add(this.toolStripMenuItem1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.pictureBox_C);
@@ -354,6 +363,8 @@ namespace SimpleImageDisplaySample
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Processing)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -379,16 +390,16 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Button toolStripMenuItem1;
         private System.Windows.Forms.RichTextBox tbxHistory;
         private System.Windows.Forms.PictureBox pictureBox_A_processed;
-        private System.Windows.Forms.Button ZoomInbutton;
-        private System.Windows.Forms.Button ZoomResetbutton;
-        private System.Windows.Forms.Button ZoomOutbutton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Timer timer2;
         private System.Windows.Forms.Button toolStripMenuItem_C;
+        private System.Windows.Forms.PictureBox pictureBox_C_processed;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.PictureBox pictureBox_Processing;
+        private System.Windows.Forms.Label label6;
        
     }
 }

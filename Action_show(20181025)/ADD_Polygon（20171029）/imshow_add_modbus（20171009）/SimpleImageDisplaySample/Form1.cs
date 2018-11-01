@@ -33,10 +33,14 @@ namespace SimpleImageDisplaySample
     public partial class Form1 : Form,ILog,IDisposable
     {
         #region 声明全局变量
+            //ImagePath
+        string ImagePath = ".\\saveimg.bmp";
+        string ImagePath1 = ".\\saveimgC.bmp";
+
             //TODO:这个标志位还有待考虑
             #region /*设置区分长方形，正方形和圆形的标志位*/
             int Flag = 0;
-            int Flag_t = 1;
+            //int Flag_t = 1;
     
             int AreaCircle;
 
@@ -91,7 +95,7 @@ namespace SimpleImageDisplaySample
         CFactory myFactory = new CFactory();
          
         // Opened camera obejct
-        CCamera myCamera1;
+        //CCamera myCamera1;
         //CCamera myCamera2;
         //Jai_FactoryWrapper.EFactoryError error;
         
@@ -183,7 +187,7 @@ namespace SimpleImageDisplaySample
                     return;
                 }
 
-                toolStripButtonStart.Enabled = false;
+                toolStripButtonStart.Enabled = true;
                 toolStripButtonStop.Enabled = true;
         }
             else
@@ -295,7 +299,6 @@ namespace SimpleImageDisplaySample
         #region FLY-B相机
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
-           
             pictureBox_B.Image = m_processedImage.bitmap;
             pictureBox_B.Invalidate();     
         }
@@ -380,7 +383,7 @@ namespace SimpleImageDisplaySample
         }
 
         //FLY-B_stop
-        private void toolStripButtonStop_Click_1(object sender, EventArgs e)
+        private void toolStripButtonStop_Click(object sender, EventArgs e)
         {
             #region FLY相机关闭
             m_grabImages = false;
@@ -402,7 +405,7 @@ namespace SimpleImageDisplaySample
             toolStripButtonStop.Enabled = false;
             #endregion
         }
-       
+
         //FLY--control
         private void toolStripButtonCameraControl_Click(object sender, EventArgs e)
         {
@@ -464,8 +467,8 @@ namespace SimpleImageDisplaySample
                 StopButton.Enabled = true;
 
                 // Open the camera
-                myCamera1 = myFactory.CameraList[0];
-               // myCamera2 = myFactory.CameraList[1];
+                //myCamera1 = myFactory.CameraList[0];
+                //myCamera2 = myFactory.CameraList[1];
             }
             else
             {
@@ -479,12 +482,15 @@ namespace SimpleImageDisplaySample
             if (myFactory.CameraList[0] != null)
             {
                 myFactory.CameraList[0].StartImageAcquisition(true, 5, pictureBox_A.Handle);
+
             }
             if (myFactory.CameraList[1] != null)
             {
-                myFactory.CameraList[1].StartImageAcquisition(true, 5, pictureBox_B.Handle);
-            }
+                myFactory.CameraList[1].StartImageAcquisition(true, 5, pictureBox_C.Handle);
+               //myFactory.CameraList[1].SaveNextFrame(".\\saveimgC_C" + ".bmp");
 
+            }
+           
             StartButton.Enabled = false;
             StopButton.Enabled = true;
             SearchButton.Enabled = true;
@@ -507,14 +513,15 @@ namespace SimpleImageDisplaySample
         private void timer2_Tick_1(object sender, EventArgs e)
         {
             #region 5000毫秒进入一次图像处理
+            
             //Console.WriteLine("image processing!!!");
-            myFactory.CameraList[0].SaveNextFrame(".\\saveimg" + ".bmp");
+            myFactory.CameraList[0].SaveNextFrame(ImagePath);
             //TODO:增加一个相机的图像处理操作
-            myFactory.CameraList[1].SaveNextFrame(".\\saveimg1" + ".bmp");
+            myFactory.CameraList[1].SaveNextFrame(ImagePath1);
 
-            ImageProcess_A(".\\saveimg.bmp");
+            ImageProcess_A(ImagePath);
 
-            ImageProcess_C(".\\saveimg1.bmp");
+            ImageProcess_C(ImagePath1);
         
             //Console.WriteLine("===Flag_t====" + Flag_t);
 
@@ -577,14 +584,14 @@ namespace SimpleImageDisplaySample
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
             double cannyThreshold =200.0;
-            double circleAccumulatorThreshold = 55;
+            double circleAccumulatorThreshold =50.0;
             
             #region Find circles
             /*检测圆形*/
             circles = grayImage.HoughCircles(
                 new Gray(cannyThreshold),
                 new Gray(circleAccumulatorThreshold),
-                2.0, //Resolution of the accumulator used to detect centers of the circles
+                1.5, //Resolution of the accumulator used to detect centers of the circles
                 grayImage.Width, //min distance 
                 20, //min radius
                 0 //max radius
@@ -608,16 +615,16 @@ namespace SimpleImageDisplaySample
             //存放矩形的形状
             List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
             // PointF[] GetVertices();
-            using (MemStorage storage = new MemStorage()) //allocate storage for contour approximation
+            using (MemStorage storage1 = new MemStorage()) //allocate storage for contour approximation
                 for (
                    Contour<Point> contours = cannyEdges.FindContours(
                       Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
                       Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
-                      storage);
+                      storage1);
                    contours != null;
                    contours = contours.HNext)
                 {
-                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage);//注意这里的The desired approximation accuracy为0.04
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage1);//注意这里的The desired approximation accuracy为0.04
 
                     if (currentContour.Area >400) //only consider contours with area greater than 4300
                     {
@@ -652,6 +659,8 @@ namespace SimpleImageDisplaySample
             #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             //draw the rectangles
+            Console.WriteLine("矩形的个数：" + boxList.Count());
+            Console.WriteLine("圆形的个数：" + circles.Count());
             foreach (MCvBox2D box1 in boxList)
             {
                 triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
@@ -664,7 +673,7 @@ namespace SimpleImageDisplaySample
             foreach (CircleF circle in circles)
             {
                 AreaCircle = (Int32)(circles[0].Area);
-                if (AreaCircle >= 4000 && AreaCircle <= 4600)
+                if (AreaCircle >= 3000 && AreaCircle <= 4600)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                     /*输出圆的圆心*/
@@ -677,6 +686,7 @@ namespace SimpleImageDisplaySample
             
             /*显示结果，在A相机的图像中显示出来*/
             pictureBox_A_processed.Image = triangleRectangleImage.ToBitmap();
+            pictureBox_Processing.Image = cannyEdges.ToBitmap();
 
             double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
@@ -724,11 +734,12 @@ namespace SimpleImageDisplaySample
 
             int point_X_circle = 0;
             int point_Y_circle = 0;
+
             /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
-            double cannyThreshold =200.0;
-            double circleAccumulatorThreshold = 55;
+            double cannyThreshold =210.0;
+            double circleAccumulatorThreshold = 50.0;
             
             #region Find circles
             /*检测圆形*/
@@ -803,6 +814,8 @@ namespace SimpleImageDisplaySample
             #region draw rectangles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             //draw the rectangles
+            //triangleRectangleImage.Save(".\\11.bmp");
+          
             foreach (MCvBox2D box1 in boxList)
             {
                 triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
@@ -815,19 +828,22 @@ namespace SimpleImageDisplaySample
             foreach (CircleF circle in circles)
             {
                 AreaCircle = (Int32)(circles[0].Area);
-                if (AreaCircle >= 4000 && AreaCircle <= 4600)
+                if (AreaCircle >= 4000 && AreaCircle <= 6500)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                     /*输出圆的圆心*/
-        
+                    Console.WriteLine("圆的面积："+ circle.Area);
                     point_X_circle = (Int32)(circles[0].Center.X);
                     point_Y_circle = (Int32)(circles[0].Center.Y);
                 }
             }
+           // triangleRectangleImage.Save(".\\11.bmp");
+          
+
             #endregion
-            //TODO:A相机和B相机之间的差别就在显示框的位置的不同
-            /*显示结果，在B相机的图像中显示出来*/
-            pictureBox_C.Image = triangleRectangleImage.ToBitmap();
+            //TODO:A相机和C相机之间的差别就在显示框的位置的不同
+            /*显示结果，在C相机的图像中显示出来*/
+            pictureBox_C_processed.Image = triangleRectangleImage.ToBitmap();
 
             double[,] a = new double[3, 3] { { fc1_c, 0, cc1_c }, { 0, fc2_c, cc2_c }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11_c, R21_c, T1_c }, { R12_c, R22_c, T2_c }, { R13_c, R23_c, T3_c } };
@@ -950,38 +966,36 @@ namespace SimpleImageDisplaySample
             this.Wrapper.Dispose();
         }
         #endregion
+
         #endregion
-
-        /**********相机放大缩小***********/
-        #region zoom放大缩小
-        private void ZoomInbutton_Click(object sender, EventArgs e)
-        {
-            //Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
-            if (myFactory.CameraList[0] != null)
-                myFactory.CameraList[0].ZoomIn();
-        }
-
-        private void ZoomResetbutton_Click(object sender, EventArgs e)
-        {
-            if (myFactory.CameraList[0] != null)
-                myFactory.CameraList[0].ZoomReset();
-        }
-
-        private void ZoomOutbutton_Click(object sender, EventArgs e)
-        {
-            if (myFactory.CameraList[0] != null)
-                myFactory.CameraList[0].ZoomOut();
-        }
-        #endregion
-
-        
-
-       
-      
+     
 #region /*注释补充*/
-/**************************************************/
+        /**************************************************/
+#region 注释--相机放大缩小
+///**********相机放大缩小***********/
+//#region zoom放大缩小
+//private void ZoomInbutton_Click(object sender, EventArgs e)
+//{
+//    //Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
+//    if (myFactory.CameraList[0] != null)
+//        myFactory.CameraList[0].ZoomIn();
+//}
+
+//private void ZoomResetbutton_Click(object sender, EventArgs e)
+//{
+//    if (myFactory.CameraList[0] != null)
+//        myFactory.CameraList[0].ZoomReset();
+//}
+
+//private void ZoomOutbutton_Click(object sender, EventArgs e)
+//{
+//    if (myFactory.CameraList[0] != null)
+//        myFactory.CameraList[0].ZoomOut();
+//}
+#endregion
+
 #region 注释--按一下处理图像并显示
-//
+        //
 //public void button_circle_Click_1(object sender, EventArgs e)
 //{
 //    #region 按键图像处理
