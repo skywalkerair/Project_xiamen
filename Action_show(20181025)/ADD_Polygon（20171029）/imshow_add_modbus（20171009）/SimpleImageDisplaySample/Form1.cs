@@ -33,18 +33,19 @@ namespace SimpleImageDisplaySample
     public partial class Form1 : Form,ILog,IDisposable
     {
         #region 声明全局变量
+            //TODO:这个标志位还有待考虑
             #region /*设置区分长方形，正方形和圆形的标志位*/
             int Flag = 0;
             int Flag_t = 1;
     
             int AreaCircle;
 
-            int point_X, point_Y;
-            int point_X_circle, point_Y_circle;
-
+            //定义A相机和C相机的矩形世界坐标点和圆形世界坐标点
             double world_X, world_Y;
-            //TODO 待删减
+            double world_X_c, world_Y_c;
+            
             double world_X_circle, world_Y_circle; 
+            double world_X_circle_c, world_Y_circle_c; 
 
             #endregion 
 
@@ -57,10 +58,14 @@ namespace SimpleImageDisplaySample
             #region /*定标变量声明*/
         //图像坐标与世界坐标初始化
         public static double fc1, fc2, cc1, cc2, R11, R12, R13, R21, R22, R23, T1, T2, T3, s;
+
+        //TODO:添加的C相机的定标参数
+        public static double fc1_c, fc2_c, cc1_c, cc2_c, R11_c, R12_c, R13_c, R21_c, R22_c, R23_c, T1_c, T2_c, T3_c, s_c;
     
         double[,] c = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] c_ = new double[3, 3] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
         double[,] world_cor = new double[3, 1] { { 0 }, { 0 }, { 1 } };
+
         #endregion
         
             #region /*Fly相机变量声明*/
@@ -194,6 +199,7 @@ namespace SimpleImageDisplaySample
             #region A相机_定标参数的初始化
             //加载标定参数
             StringBuilder str = new StringBuilder(100);
+            //calib2.ini:表示的是A相机定标之后所保存的定标参数
             GetPrivateProfileString("标定", "fc1", "", str, 100, Application.StartupPath + "/calib2.ini");
             if (str.ToString() != "")
                 fc1 = Convert.ToDouble(str.ToString());
@@ -239,49 +245,49 @@ namespace SimpleImageDisplaySample
             #endregion
             #region B相机_定标参数的初始化
             //加载标定参数
-            StringBuilder str_B = new StringBuilder(100);
-            GetPrivateProfileString("标定", "fc1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                fc1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "fc2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                fc2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "cc1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                cc1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "cc2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                cc2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R11", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R11 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R12", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R12 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R13", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R13 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R21", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R21 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R22", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R22 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "R23", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                R23 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "T1", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                T1 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "T2", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                T2 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "T3", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                T3 = Convert.ToDouble(str.ToString());
-            GetPrivateProfileString("标定", "s", "", str_B, 100, Application.StartupPath + "/calib_B_B.ini");
-            if (str.ToString() != "")
-                s = Convert.ToDouble(str_B.ToString());
+            StringBuilder str_c = new StringBuilder(100);
+            GetPrivateProfileString("标定", "fc1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                fc1_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "fc2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                fc2_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "cc1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                cc1_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "cc2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                cc2_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R11", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R11_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R12", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R12_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R13", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R13_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R21", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R21_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R22", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R22_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "R23", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                R23_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "T1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                T1_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "T2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                T2_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "T3", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                T3_c = Convert.ToDouble(str_c.ToString());
+            GetPrivateProfileString("标定", "s", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            if (str_c.ToString() != "")
+                s_c = Convert.ToDouble(str_c.ToString());
             #endregion
         }
        
@@ -290,8 +296,8 @@ namespace SimpleImageDisplaySample
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
            
-            pictureBox_C.Image = m_processedImage.bitmap;
-            pictureBox_C.Invalidate();     
+            pictureBox_B.Image = m_processedImage.bitmap;
+            pictureBox_B.Invalidate();     
         }
 
         //Form1_FormClosing 
@@ -423,6 +429,12 @@ namespace SimpleImageDisplaySample
            
             #endregion
         }
+
+        private void toolStripMenuItem_C_Click(object sender, EventArgs e)
+        {
+            calib_C cab_C = new calib_C();
+            cab_C.Show();
+        }
      
         #endregion
 
@@ -502,26 +514,26 @@ namespace SimpleImageDisplaySample
 
             ImageProcess_A(".\\saveimg.bmp");
 
-            ImageProcess_B(".\\saveimg1.bmp");
+            ImageProcess_C(".\\saveimg1.bmp");
         
             //Console.WriteLine("===Flag_t====" + Flag_t);
-            string str1 = this.tbxSendText.Text.Trim().ToString();
+
 
             //x = 34.3333;
             //point_X = (Int32)(circles[0].Center.X);
             //point_Y = (Int32)(circles[0].Center.Y);
-            if (Flag_t == 0)
-            {
-                SendDataToModBus(world_X,world_Y);  
-            }
-            else if (Flag_t == 1)
-            {
-               //TODO:do something 
-            }
-            else
-            {
-                Flag_t = 1;
-            }
+            // if (Flag_t == 0)
+            // {
+            //     SendDataToModBus(world_X,world_Y);  
+            // }
+            // else if (Flag_t == 1)
+            // {
+            //    //TODO:do something 
+            // }
+            // else
+            // {
+            //     Flag_t = 1;
+            // }
 
             #endregion
         }
@@ -555,6 +567,12 @@ namespace SimpleImageDisplaySample
         #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
+            int point_X = 0;
+            int point_Y = 0;
+
+            int point_X_circle = 0;
+            int point_Y_circle = 0;
+            
             /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
@@ -631,7 +649,7 @@ namespace SimpleImageDisplaySample
                 }
             #endregion
             
-            #region draw rectangles
+            #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             //draw the rectangles
             foreach (MCvBox2D box1 in boxList)
@@ -676,7 +694,7 @@ namespace SimpleImageDisplaySample
                 world_Y = (world_cor[1, 0] / s) * 1000;
 
                 Flag = 1;
-            }
+           }
             else if (Flag == 1)
             {
                 //circle_location
@@ -698,9 +716,14 @@ namespace SimpleImageDisplaySample
         }
         #endregion
         
-        #region 相机B的处理过程
-        private void ImageProcess_B(string ImagePath)
+        #region 相机C的处理过程
+        private void ImageProcess_C(string ImagePath)
         {
+            int point_X = 0;
+            int point_Y = 0;
+
+            int point_X_circle = 0;
+            int point_Y_circle = 0;
             /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
@@ -804,10 +827,10 @@ namespace SimpleImageDisplaySample
             #endregion
             //TODO:A相机和B相机之间的差别就在显示框的位置的不同
             /*显示结果，在B相机的图像中显示出来*/
-            pictureBox_B.Image = triangleRectangleImage.ToBitmap();
+            pictureBox_C.Image = triangleRectangleImage.ToBitmap();
 
-            double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
-            double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
+            double[,] a = new double[3, 3] { { fc1_c, 0, cc1_c }, { 0, fc2_c, cc2_c }, { 0, 0, 1 } };
+            double[,] b = new double[3, 3] { { R11_c, R21_c, T1_c }, { R12_c, R22_c, T2_c }, { R13_c, R23_c, T3_c } };
              
             if (Flag == 0)
             { 
@@ -818,8 +841,8 @@ namespace SimpleImageDisplaySample
                 Matrix.MatrixOpp(c, ref c_);
                 Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
 
-                world_X = (world_cor[0, 0] / s) * 1000;
-                world_Y = (world_cor[1, 0] / s) * 1000;
+                world_X_c = (world_cor[0, 0] / s) * 1000;
+                world_Y_c = (world_cor[1, 0] / s) * 1000;
 
                 Flag = 1;
             }
@@ -832,8 +855,8 @@ namespace SimpleImageDisplaySample
                 Matrix.MatrixOpp(c, ref c_);
                 Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
 
-                world_X_circle = (world_cor[0, 0] / s) * 1000;
-                world_Y_circle = (world_cor[1, 0] / s) * 1000;
+                world_X_circle_c = (world_cor[0, 0] / s) * 1000;
+                world_Y_circle_c = (world_cor[1, 0] / s) * 1000;
               
                 Flag = 0;
             }
@@ -951,11 +974,7 @@ namespace SimpleImageDisplaySample
         }
         #endregion
 
-        private void toolStripMenuItem_C_Click(object sender, EventArgs e)
-        {
-            calib_C cab_C = new calib_C();
-            cab_C.Show();
-        }
+        
 
        
       

@@ -44,8 +44,6 @@ namespace SimpleImageDisplaySample
             this.toolStripButtonStop = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCameraControl = new System.Windows.Forms.ToolStripButton();
             this.toolStripMenuItem1 = new System.Windows.Forms.Button();
-            this.tbxSendText = new System.Windows.Forms.TextBox();
-            this.btnSend = new System.Windows.Forms.Button();
             this.tbxHistory = new System.Windows.Forms.RichTextBox();
             this.pictureBox_A_processed = new System.Windows.Forms.PictureBox();
             this.ZoomInbutton = new System.Windows.Forms.Button();
@@ -157,7 +155,7 @@ namespace SimpleImageDisplaySample
             this.toolStripButtonStart,
             this.toolStripButtonStop,
             this.toolStripButtonCameraControl});
-            this.toolStrip1.Location = new System.Drawing.Point(770, 73);
+            this.toolStrip1.Location = new System.Drawing.Point(552, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(230, 43);
             this.toolStrip1.Stretch = true;
@@ -212,22 +210,6 @@ namespace SimpleImageDisplaySample
             this.toolStripMenuItem1.Text = "±ê¶¨A";
             this.toolStripMenuItem1.UseVisualStyleBackColor = true;
             this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click_A);
-            // 
-            // tbxSendText
-            // 
-            this.tbxSendText.Location = new System.Drawing.Point(652, 25);
-            this.tbxSendText.Name = "tbxSendText";
-            this.tbxSendText.Size = new System.Drawing.Size(348, 21);
-            this.tbxSendText.TabIndex = 15;
-            // 
-            // btnSend
-            // 
-            this.btnSend.Location = new System.Drawing.Point(556, 25);
-            this.btnSend.Name = "btnSend";
-            this.btnSend.Size = new System.Drawing.Size(75, 23);
-            this.btnSend.TabIndex = 16;
-            this.btnSend.Text = "·¢ËÍ";
-            this.btnSend.UseVisualStyleBackColor = true;
             // 
             // tbxHistory
             // 
@@ -353,8 +335,6 @@ namespace SimpleImageDisplaySample
             this.Controls.Add(this.ZoomInbutton);
             this.Controls.Add(this.pictureBox_A_processed);
             this.Controls.Add(this.tbxHistory);
-            this.Controls.Add(this.btnSend);
-            this.Controls.Add(this.tbxSendText);
             this.Controls.Add(this.toolStripMenuItem1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.pictureBox_C);
@@ -397,8 +377,6 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.ToolStripButton toolStripButtonStop;
         private System.Windows.Forms.ToolStripButton toolStripButtonCameraControl;
         private System.Windows.Forms.Button toolStripMenuItem1;
-        private System.Windows.Forms.TextBox tbxSendText;
-        private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.RichTextBox tbxHistory;
         private System.Windows.Forms.PictureBox pictureBox_A_processed;
         private System.Windows.Forms.Button ZoomInbutton;

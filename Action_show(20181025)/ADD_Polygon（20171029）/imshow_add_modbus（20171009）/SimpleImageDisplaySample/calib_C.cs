@@ -80,34 +80,34 @@ namespace SimpleImageDisplaySample
 
         private void button2_Click(object sender, EventArgs e)
         {
-            WritePrivateProfileString("标定", "fc1", textBox1.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "fc2", textBox2.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "cc1", textBox3.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "cc2", textBox4.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R11", textBox5.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R12", textBox6.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R13", textBox7.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R21", textBox8.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R22", textBox9.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "R23", textBox10.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "T1", textBox11.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "T2", textBox12.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "T3", textBox13.Text, Application.StartupPath + "/calib.ini");
-            WritePrivateProfileString("标定", "s", textBox14.Text, Application.StartupPath + "/calib.ini");
-            Form1.fc1 = fc1;
-            Form1.fc2 = fc2;
-            Form1.cc1 = cc1;
-            Form1.cc2 = cc2;
-            Form1.R11 = R11;
-            Form1.R12 = R12;
-            Form1.R13 = R13;
-            Form1.R21 = R21;
-            Form1.R22 = R22;
-            Form1.R23 = R23;
-            Form1.T1 = T1;
-            Form1.T2 = T2;
-            Form1.T3 = T3;
-            Form1.s = s;
+            WritePrivateProfileString("标定", "fc1", textBox1.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "fc2", textBox2.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "cc1", textBox3.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "cc2", textBox4.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R11", textBox5.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R12", textBox6.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R13", textBox7.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R21", textBox8.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R22", textBox9.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "R23", textBox10.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "T1", textBox11.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "T2", textBox12.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "T3", textBox13.Text, Application.StartupPath + "/calib_C.ini");
+            WritePrivateProfileString("标定", "s", textBox14.Text, Application.StartupPath + "/calib_C.ini");
+            Form1.fc1_c = fc1;
+            Form1.fc2_c = fc2;
+            Form1.cc1_c = cc1;
+            Form1.cc2_c = cc2;
+            Form1.R11_c = R11;
+            Form1.R12_c = R12;
+            Form1.R13_c = R13;
+            Form1.R21_c = R21;
+            Form1.R22_c = R22;
+            Form1.R23_c = R23;
+            Form1.T1_c = T1;
+            Form1.T2_c = T2;
+            Form1.T3_c = T3;
+            Form1.s_c = s;
         }
 
     }
