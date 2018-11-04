@@ -37,19 +37,36 @@ namespace SimpleImageDisplaySample
         string ImagePath = ".\\saveimg.bmp";
         string ImagePath1 = ".\\saveimgC.bmp";
 
+        //TODO:这里B相机的图像还没添加进去
+        string ImagePath2 = ".\\saveimgB.bmp";
+
+            #region 区分长方形、正方形和圆形的世界坐标点在A相机和C相机
+            double world_X = 0;
+            double world_Y = 0;
+            double world_X_c = 0;
+            double world_Y_c = 0;
+            
+            double world_X_circle = 0;
+            double world_Y_circle = 0; 
+            double world_X_circle_c = 0; 
+            double world_Y_circle_c =0; 
+
+            //TODO:将选择好需要传给Modbus的值public_x&&public_y
+            double public_X = 0;
+            double public_Y = 0;
+
+            #endregion
             //TODO:这个标志位还有待考虑
             #region /*设置区分长方形，正方形和圆形的标志位*/
             int Flag = 0;
-            //int Flag_t = 1;
+
+            //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
+            //为1则表示检测到了长方形，
+            //2则表示检测到了正方形，
+            //3则表示检测到了圆形
+            int Flag_B  = 0;
     
             int AreaCircle;
-
-            //定义A相机和C相机的矩形世界坐标点和圆形世界坐标点
-            double world_X, world_Y;
-            double world_X_c, world_Y_c;
-            
-            double world_X_circle, world_Y_circle; 
-            double world_X_circle_c, world_Y_circle_c; 
 
             #endregion 
 
@@ -247,7 +264,7 @@ namespace SimpleImageDisplaySample
             if (str.ToString() != "")
                 s = Convert.ToDouble(str.ToString());
             #endregion
-            #region B相机_定标参数的初始化
+            #region C相机_定标参数的初始化
             //加载标定参数
             StringBuilder str_c = new StringBuilder(100);
             GetPrivateProfileString("标定", "fc1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
@@ -295,7 +312,7 @@ namespace SimpleImageDisplaySample
             #endregion
         }
        
-        /**************FLY-B相机*******************/
+        /**************FLY-B相机**************/
         #region FLY-B相机
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
@@ -441,9 +458,8 @@ namespace SimpleImageDisplaySample
      
         #endregion
 
-        /**************JAI-A&&C相机*******************/
-        #region JAI-A&&C相机
-        #region searching
+        /************AI-A&&C相机**************/
+        #region JAI-A&&C相机,开始，结束和搜索
         private void SearchButton_Click(object sender, EventArgs e)
         {
             Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
@@ -475,8 +491,8 @@ namespace SimpleImageDisplaySample
                 MessageBox.Show("No Cameras Found!");
             }
         }
-        #endregion
-        //EgiE相机开始停止    
+        //EgiE相机开始停止
+        //TODO:按下开始键打开JAI相机开始处理图像，主要函数在这里    
         private void StartButton_Click(object sender, EventArgs e)
         {
             if (myFactory.CameraList[0] != null)
@@ -490,10 +506,38 @@ namespace SimpleImageDisplaySample
                //myFactory.CameraList[1].SaveNextFrame(".\\saveimgC_C" + ".bmp");
 
             }
-           
+            
             StartButton.Enabled = false;
             StopButton.Enabled = true;
             SearchButton.Enabled = true;
+            
+            //TODO:直接设置死循环让其不停地找图像并进行坐标的传值：
+            //TODO:如何判断C相机
+
+            while(true)
+            {
+                myFactory.CameraList[0].SaveNextFrame(ImagePath);
+                myFactory.CameraList[1].SaveNextFrame(ImagePath1);
+                ImageProcess_A(ImagePath);
+
+                SendDataToModBus(public_X,public_Y);
+
+                //B相机Do something 
+
+                ImageProcess_B(ImagePath2);
+
+
+                //TODO:Flag_B的值是否变为1，若为1说明B相机检测到了物体
+                if(Flag_B == 1)
+                {
+                    //TODO:如何判断长方形、正方形和圆形
+                    if(Flag == 1)
+                    {
+                        ImageProcess_C(ImagePath1);
+                    }
+                }
+                else continue;
+            }
         }
         private void StopButton_Click(object sender, EventArgs e)
         {
@@ -508,45 +552,8 @@ namespace SimpleImageDisplaySample
         }        
         #endregion
         
-        
-        /********线程控制-------main()-----图像处理*******/
-        private void timer2_Tick_1(object sender, EventArgs e)
-        {
-            #region 5000毫秒进入一次图像处理
-            
-            //Console.WriteLine("image processing!!!");
-            myFactory.CameraList[0].SaveNextFrame(ImagePath);
-            //TODO:增加一个相机的图像处理操作
-            myFactory.CameraList[1].SaveNextFrame(ImagePath1);
-
-            ImageProcess_A(ImagePath);
-
-            ImageProcess_C(ImagePath1);
-        
-            //Console.WriteLine("===Flag_t====" + Flag_t);
-
-
-            //x = 34.3333;
-            //point_X = (Int32)(circles[0].Center.X);
-            //point_Y = (Int32)(circles[0].Center.Y);
-            // if (Flag_t == 0)
-            // {
-            //     SendDataToModBus(world_X,world_Y);  
-            // }
-            // else if (Flag_t == 1)
-            // {
-            //    //TODO:do something 
-            // }
-            // else
-            // {
-            //     Flag_t = 1;
-            // }
-
-            #endregion
-        }
-
-
-        /********将世界坐标值传到机械手端*******/
+    
+        /***将世界坐标值传到机械手端*******/
         private void SendDataToModBus(double WorldX,double WorldY)
         {
             Int32 x = (Int32)(WorldX);
@@ -570,7 +577,6 @@ namespace SimpleImageDisplaySample
         
         /*******关于图像处理程序**********/
         //图像处理程序模块
-  
         #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
@@ -655,7 +661,7 @@ namespace SimpleImageDisplaySample
                     }
                 }
             #endregion
-            
+           
             #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             //draw the rectangles
@@ -663,11 +669,7 @@ namespace SimpleImageDisplaySample
             Console.WriteLine("圆形的个数：" + circles.Count());
             foreach (MCvBox2D box1 in boxList)
             {
-                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
-             
-                //图像中x,y的坐标位置
-                point_X = (Int32)(boxList[0].center.X);
-                point_Y = (Int32)(boxList[0].center.Y);
+                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);  
             }
             //draw the circles
             foreach (CircleF circle in circles)
@@ -676,10 +678,6 @@ namespace SimpleImageDisplaySample
                 if (AreaCircle >= 3000 && AreaCircle <= 4600)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
-                    /*输出圆的圆心*/
-        
-                    point_X_circle = (Int32)(circles[0].Center.X);
-                    point_Y_circle = (Int32)(circles[0].Center.Y);
                 }
             }
             #endregion
@@ -691,8 +689,14 @@ namespace SimpleImageDisplaySample
             double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
              
-            if (Flag == 0)
+            //TODO:Flag == 0：表示的是长方形和正方形的坐标位置，但是还没有区分出长方形和正方形（可能面积的大小来区分）
+            if (Flag == 1)
             { 
+                boxList.Sort();
+                //图像中x,y的坐标位置
+                point_X = (Int32)(boxList[0].center.X);
+                point_Y = (Int32)(boxList[0].center.Y);
+
                 //rectangle_location
                 double[,] image_pix = new double[3, 1] { { point_X }, { point_Y }, { 1 } };
 
@@ -705,8 +709,14 @@ namespace SimpleImageDisplaySample
 
                 Flag = 1;
            }
-            else if (Flag == 1)
+           //Flag == 1 表示的是圆形的坐标位置
+            else if (Flag == 0)
             {
+                /*输出圆的圆心*/
+
+                point_X_circle = (Int32)(circles[0].Center.X);
+                point_Y_circle = (Int32)(circles[0].Center.Y);
+
                 //circle_location
                 double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
 
@@ -717,10 +727,11 @@ namespace SimpleImageDisplaySample
                 world_X_circle = (world_cor[0, 0] / s) * 1000;
                 world_Y_circle = (world_cor[1, 0] / s) * 1000;
               
-                Flag = 0;
+                Flag = 1;
             }
             else
             {
+                Console.WriteLine("the Flag U set is wrong!!!");
                 Flag = 0;
             }
         }
@@ -811,7 +822,7 @@ namespace SimpleImageDisplaySample
                 }
             #endregion
             
-            #region draw rectangles
+            #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             //draw the rectangles
             //triangleRectangleImage.Save(".\\11.bmp");
@@ -838,9 +849,8 @@ namespace SimpleImageDisplaySample
                 }
             }
            // triangleRectangleImage.Save(".\\11.bmp");
-          
-
-            #endregion
+           #endregion
+           
             //TODO:A相机和C相机之间的差别就在显示框的位置的不同
             /*显示结果，在C相机的图像中显示出来*/
             pictureBox_C_processed.Image = triangleRectangleImage.ToBitmap();
@@ -848,7 +858,7 @@ namespace SimpleImageDisplaySample
             double[,] a = new double[3, 3] { { fc1_c, 0, cc1_c }, { 0, fc2_c, cc2_c }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11_c, R21_c, T1_c }, { R12_c, R22_c, T2_c }, { R13_c, R23_c, T3_c } };
              
-            if (Flag == 0)
+            if (Flag_B == 1) //1:长方形
             { 
                 //rectangle_location
                 double[,] image_pix = new double[3, 1] { { point_X }, { point_Y }, { 1 } };
@@ -862,7 +872,7 @@ namespace SimpleImageDisplaySample
 
                 Flag = 1;
             }
-            else if (Flag == 1)
+            else if (Flag_B == 3) //3:圆形
             {
                 //circle_location
                 double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
@@ -873,19 +883,28 @@ namespace SimpleImageDisplaySample
 
                 world_X_circle_c = (world_cor[0, 0] / s) * 1000;
                 world_Y_circle_c = (world_cor[1, 0] / s) * 1000;
-              
+
+                public_X = world_X_circle_c;
+                public_Y = world_Y_circle_c;
+
                 Flag = 0;
             }
-            else
+            else if(Flag_B == 2) //2:正方形
             {
-                Flag = 0;
+                //面积小的那一个
             }
         }
         #endregion
-        
-        
+    
+        //TODO:B相机的处理程序还没写，这里还有打光的技术，在论文中可以添加
+        #region 相机B的处理过程
+        private void ImageProcess_B(string ImagePath)
+        {
+            //Do something...
 
-        
+        }
+
+        #endregion
         /**********Modbus程序***********/
         #region ModBus程序
         #region Modbus 的传送的数据格式处理
@@ -971,6 +990,45 @@ namespace SimpleImageDisplaySample
      
 #region /*注释补充*/
         /**************************************************/
+#region 注释--定时器来控制整个程序的图像处理
+        //TODO:可能这里需要更换成定时器模式来完成
+        /********线程控制-------main()-----图像处理*******/
+        // private void timer2_Tick_1(object sender, EventArgs e)
+        // {
+        //     #region 5000毫秒进入一次图像处理
+            
+        //     //Console.WriteLine("image processing!!!");
+        //     myFactory.CameraList[0].SaveNextFrame(ImagePath);
+        //     //TODO:增加一个相机的图像处理操作
+        //     myFactory.CameraList[1].SaveNextFrame(ImagePath1);
+
+        //     ImageProcess_A(ImagePath);
+
+        //     ImageProcess_C(ImagePath1);
+        
+        //     //Console.WriteLine("===Flag_t====" + Flag_t);
+
+
+        //     //x = 34.3333;
+        //     //point_X = (Int32)(circles[0].Center.X);
+        //     //point_Y = (Int32)(circles[0].Center.Y);
+        //     // if (Flag_t == 0)
+        //     // {
+        //     //     SendDataToModBus(world_X,world_Y);  
+        //     // }
+        //     // else if (Flag_t == 1)
+        //     // {
+        //     //    //TODO:do something 
+        //     // }
+        //     // else
+        //     // {
+        //     //     Flag_t = 1;
+        //     // }
+
+        //     #endregion
+        // }
+#endregion
+
 #region 注释--相机放大缩小
 ///**********相机放大缩小***********/
 //#region zoom放大缩小
@@ -1253,4 +1311,4 @@ namespace SimpleImageDisplaySample
 // Search for cameras and update all controls
 //SearchButton_Click(null, null);
 #endregion
-#endregion 
+#endregion
