@@ -34,11 +34,11 @@ namespace SimpleImageDisplaySample
     {
         #region 声明全局变量
             //ImagePath
-        string ImagePath = ".\\saveimg.bmp";
-        string ImagePath1 = ".\\saveimgC.bmp";
+        string ImagePath_A = ".\\saveimg.bmp";
+        string ImagePath_C = ".\\saveimgC.bmp";
 
         //TODO:这里B相机的图像还没添加进去
-        string ImagePath2 = ".\\saveimgB.bmp";
+        string ImagePath_B = ".\\saveimgB.bmp";
 
             #region 区分长方形、正方形和圆形的世界坐标点在A相机和C相机
             double world_X = 0;
@@ -58,7 +58,7 @@ namespace SimpleImageDisplaySample
             #endregion
             //TODO:这个标志位还有待考虑
             #region /*设置区分长方形，正方形和圆形的标志位*/
-            int Flag = 0;
+            int Flag = 1;
 
             //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
             //为1则表示检测到了长方形，
@@ -490,8 +490,8 @@ namespace SimpleImageDisplaySample
             {
                 MessageBox.Show("No Cameras Found!");
             }
-        }
-        //EgiE相机开始停止
+        }   
+       
         //TODO:按下开始键打开JAI相机开始处理图像，主要函数在这里    
         private void StartButton_Click(object sender, EventArgs e)
         {
@@ -516,24 +516,24 @@ namespace SimpleImageDisplaySample
 
             while(true)
             {
-                myFactory.CameraList[0].SaveNextFrame(ImagePath);
-                myFactory.CameraList[1].SaveNextFrame(ImagePath1);
-                ImageProcess_A(ImagePath);
+                myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
+                myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
+                ImageProcess_A(ImagePath_A);
+                ImageProcess_C(ImagePath_C);
 
                 SendDataToModBus(public_X,public_Y);
 
                 //B相机Do something 
 
-                ImageProcess_B(ImagePath2);
-
-
+                ImageProcess_B(ImagePath_B);
+               
                 //TODO:Flag_B的值是否变为1，若为1说明B相机检测到了物体
                 if(Flag_B == 1)
                 {
                     //TODO:如何判断长方形、正方形和圆形
                     if(Flag == 1)
                     {
-                        ImageProcess_C(ImagePath1);
+                        ImageProcess_C(ImagePath_C);
                     }
                 }
                 else continue;
@@ -577,9 +577,26 @@ namespace SimpleImageDisplaySample
         
         /*******关于图像处理程序**********/
         //图像处理程序模块
+        #region 求矩形的面积
+
+        private int AreaRect(int W,int H)
+        {
+            int area = W * H;
+            return area;
+        }
+        private int Max(int num)
+        {
+            int max = 0;
+
+            return max;
+        }
+        #endregion
+
+
         #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
+            //矩形和圆形的中心点坐标
             int point_X = 0;
             int point_Y = 0;
 
@@ -664,21 +681,23 @@ namespace SimpleImageDisplaySample
            
             #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
-            //draw the rectangles
-            Console.WriteLine("矩形的个数：" + boxList.Count());
-            Console.WriteLine("圆形的个数：" + circles.Count());
+            //draw the rectangles           
+            Console.WriteLine("A相机中的矩形的个数：" + boxList.Count());
+         
             foreach (MCvBox2D box1 in boxList)
             {
-                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);  
+                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
             }
+
             //draw the circles
             foreach (CircleF circle in circles)
             {
-                AreaCircle = (Int32)(circles[0].Area);
+                AreaCircle = (Int32)(circle.Area);
                 if (AreaCircle >= 3000 && AreaCircle <= 4600)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                 }
+                else { continue; }
             }
             #endregion
             
@@ -688,46 +707,65 @@ namespace SimpleImageDisplaySample
 
             double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
-             
+
+            
             //TODO:Flag == 0：表示的是长方形和正方形的坐标位置，但是还没有区分出长方形和正方形（可能面积的大小来区分）
             if (Flag == 1)
-            { 
-                boxList.Sort();
-                //图像中x,y的坐标位置
-                point_X = (Int32)(boxList[0].center.X);
-                point_Y = (Int32)(boxList[0].center.Y);
+            {
+                if (boxList.Count() == 0)
+                {
+                    Flag = 0;
+                }
+                else
+                {
+                    //图像中x,y的坐标位置
+                    point_X = (Int32)(boxList[0].center.X);
+                    point_Y = (Int32)(boxList[0].center.Y);
+                    Console.WriteLine("矩形的重心：" + boxList[0].center);
+                    
+                    //rectangle_location
+                    double[,] image_pix = new double[3, 1] { { point_X }, { point_Y }, { 1 } };
 
-                //rectangle_location
-                double[,] image_pix = new double[3, 1] { { point_X }, { point_Y }, { 1 } };
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
 
-                Matrix.MatrixMultiply(a, b, ref c);
-                Matrix.MatrixOpp(c, ref c_);
-                Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+                    world_X = (world_cor[0, 0] / s) * 1000;
+                    world_Y = (world_cor[1, 0] / s) * 1000;
 
-                world_X = (world_cor[0, 0] / s) * 1000;
-                world_Y = (world_cor[1, 0] / s) * 1000;
-
-                Flag = 1;
-           }
-           //Flag == 1 表示的是圆形的坐标位置
+                    Flag = 1;
+                }
+            }
+            //Flag == 1 表示的是圆形的坐标位置
             else if (Flag == 0)
             {
                 /*输出圆的圆心*/
+                Console.WriteLine("圆形的个数：" + circles.Count());
+                if (circles.Count()==0||(circles[0].Area >= 4600||circles[0].Area<=3000))
+                {
+                    Console.WriteLine("Nothing detected!!!");
+                    point_X_circle = 0;
+                    point_Y_circle = 0;
+                    Console.WriteLine("A中的圆形的个数："+0);
+                    Console.WriteLine("回原点坐标{0},{1}", point_X_circle, point_Y_circle);
+                    
+                }
+                else {
+                    point_X_circle = (Int32)(circles[0].Center.X);
+                    point_Y_circle = (Int32)(circles[0].Center.Y);
+                    Console.WriteLine("圆形的重心：" + circles[0].Center);
+                    //circle_location
+                    double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
 
-                point_X_circle = (Int32)(circles[0].Center.X);
-                point_Y_circle = (Int32)(circles[0].Center.Y);
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
 
-                //circle_location
-                double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
+                    world_X_circle = (world_cor[0, 0] / s) * 1000;
+                    world_Y_circle = (world_cor[1, 0] / s) * 1000;
 
-                Matrix.MatrixMultiply(a, b, ref c);
-                Matrix.MatrixOpp(c, ref c_);
-                Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
-
-                world_X_circle = (world_cor[0, 0] / s) * 1000;
-                world_Y_circle = (world_cor[1, 0] / s) * 1000;
-              
-                Flag = 1;
+                    Flag = 1;
+                }
             }
             else
             {
@@ -843,7 +881,7 @@ namespace SimpleImageDisplaySample
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                     /*输出圆的圆心*/
-                    Console.WriteLine("圆的面积："+ circle.Area);
+                    //Console.WriteLine("圆的面积："+ circle.Area);
                     point_X_circle = (Int32)(circles[0].Center.X);
                     point_Y_circle = (Int32)(circles[0].Center.Y);
                 }

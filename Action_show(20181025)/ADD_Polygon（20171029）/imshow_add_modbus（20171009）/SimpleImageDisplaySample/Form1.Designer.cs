@@ -276,8 +276,6 @@ namespace SimpleImageDisplaySample
             // 
             this.timer2.Enabled = true;
             this.timer2.Interval = 1000;
-            //TODO:我这里屏蔽了定时器功能
-            //this.timer2.Tick += new System.EventHandler(this.timer2_Tick_1);
             // 
             // toolStripMenuItem_C
             // 
@@ -298,6 +296,7 @@ namespace SimpleImageDisplaySample
             this.pictureBox_C_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_C_processed.TabIndex = 32;
             this.pictureBox_C_processed.TabStop = false;
+            
             // 
             // label5
             // 
