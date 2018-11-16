@@ -55,7 +55,14 @@ namespace SimpleImageDisplaySample
             double world_X_circle = 0;
             double world_Y_circle = 0; 
             double world_X_circle_c = 0; 
-            double world_Y_circle_c =0; 
+            double world_Y_circle_c =0;
+
+            int point_X_C_chang;
+            int point_Y_C_chang;
+
+            int point_X_C_zheng;
+            int point_Y_C_zheng;
+
 
             //将选择好需要传给Modbus的值public_x&&public_y
             double public_X = 0;
@@ -591,24 +598,27 @@ namespace SimpleImageDisplaySample
             /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+            
+            Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
+            
             double cannyThreshold =200.0;
             double circleAccumulatorThreshold =50.0;
             
             #region Find circles
             /*检测圆形*/
-            circles = grayImage.HoughCircles(
+            circles = MedianImage.HoughCircles(
                 new Gray(cannyThreshold),
                 new Gray(circleAccumulatorThreshold),
                 1.5, //Resolution of the accumulator used to detect centers of the circles
-                grayImage.Width, //min distance 
+                MedianImage.Width, //min distance 
                 20, //min radius
                 0 //max radius
                 )[0]; //Get the circles from the first channel
             #endregion
             
             #region Canny and edge detection
-            double cannyThresholdLinking = 100.0;
-            Image<Gray, Byte> cannyEdges = grayImage.Canny(cannyThreshold, cannyThresholdLinking);
+            double cannyThresholdLinking = 50.0;
+            Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
             
             #endregion
             
@@ -754,36 +764,37 @@ namespace SimpleImageDisplaySample
         #region 相机C的处理过程
         private void ImageProcess_C(string ImagePath)
         {
-            int point_X_C_chang;
-            int point_Y_C_chang;
-
-            int point_X_C_zheng;
-            int point_Y_C_zheng;
-
+        
+           
             int point_X_circle = 0;
             int point_Y_circle = 0;
 
             /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
-            double cannyThreshold =210.0;
+            //加入了中值滤波器去噪
+            Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
+            double cannyThreshold =300.0;
             double circleAccumulatorThreshold = 50.0;
             
             #region Find circles
             /*检测圆形*/
-            circles = grayImage.HoughCircles(
+            circles = MedianImage.HoughCircles(
                 new Gray(cannyThreshold),
                 new Gray(circleAccumulatorThreshold),
                 2.0, //Resolution of the accumulator used to detect centers of the circles
-                grayImage.Width, //min distance 
+                MedianImage.Width, //min distance 
                 20, //min radius
                 0 //max radius
                 )[0]; //Get the circles from the first channel
             #endregion
             
             #region Canny and edge detection
-            double cannyThresholdLinking = 100.0;
-            Image<Gray, Byte> cannyEdges = grayImage.Canny(cannyThreshold, cannyThresholdLinking);
+            double cannyThresholdLinking = 50.0;
+            
+            Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
+            //grayImage.SmoothMedian();
+            //CvInvoke.GaussianBlur(sub_channel, sub_channel, new System.Drawing.Size(9, 9), 0, 0);
             //TODO:将LineSegment2D[] lines去掉看看效果
             // LineSegment2D[] lines = cannyEdges.HoughLinesBinary(
             //     1, //Distance resolution in pixel-related units
@@ -807,13 +818,13 @@ namespace SimpleImageDisplaySample
                    contours != null;
                    contours = contours.HNext)
                 {
-                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage);//注意这里的The desired approximation accuracy为0.04
-
-                    if (currentContour.Area >400) //only consider contours with area greater than 4300
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.04, storage);//注意这里的The desired approximation accuracy为0.04
+                   // Console.WriteLine("currentContour.Area:"+ currentContour.Area);
+                    if (currentContour.Area >= 400) //only consider contours with area greater than 4300
                     {
                         if(currentContour.Total == 4)  //The contour has 4 vertices.
                         {
-                            #region determine if all the angles in the contour are within [80, 100] degree
+                            #region determine if all the angles in the contour are within [80, 100] degree                       
                             bool isRectangle = true;
                             Point[] pts = currentContour.ToArray();
                             LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
@@ -822,7 +833,7 @@ namespace SimpleImageDisplaySample
                             {
                                 double angle = Math.Abs(
                                    edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
-                                if (angle < 80 || angle > 100)
+                                if (angle < 85 || angle > 95)
                                 {
                                     isRectangle = false;
                                     break;
@@ -841,17 +852,22 @@ namespace SimpleImageDisplaySample
             
             #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            //pictureBox_Processing.Image = cannyEdges.ToBitmap();
 
             //draw the rectangles
             foreach (MCvBox2D box1 in boxList)
             {
+                Console.WriteLine("box1:" + box1.MinAreaRect().Size); 
+                //Console.WriteLine("box1的值:" + box1.size);
                 triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
             }
             //draw the circles
             foreach (CircleF circle in circles)
             {
                 AreaCircle = (Int32)(circle.Area);
-                if (AreaCircle >= 3000 && AreaCircle <= 4600)
+                Console.WriteLine("C相机中圆的面积：" + AreaCircle);
+
+                if (AreaCircle >= 5000 && AreaCircle <= 6500)
                 {
                     triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
                 }
@@ -863,24 +879,40 @@ namespace SimpleImageDisplaySample
 
             //图像中矩形的位置
             //C相机中的长方形和正方形怎么区分
-            if (boxList[0].size.Width >= boxList[1].size.Width)
-            {
-                //boxList[0]是长方形
-                point_X_C_chang = (Int32)(boxList[0].center.X);
-                point_Y_C_chang = (Int32)(boxList[0].center.Y);
+           if(boxList.Count() == 0)
+           {
+               Console.WriteLine("C相机中的圆形没检测到！");
+               //MessageBox.Show("boxList中的矩形没有检测到！");
+               Flag_B = 3;
+           }
+           else if(boxList.Count() == 1)
+           {
+               point_X_C_chang = (Int32)(boxList[0].center.X);
+               point_Y_C_chang = (Int32)(boxList[0].center.Y);
+           }
+           else
+           {
+                if (boxList[0].size.Height >= boxList[1].size.Height)
+                {
+                    //boxList[0]是长方形
+                    point_X_C_chang = (Int32)(boxList[0].center.X);
+                    point_Y_C_chang = (Int32)(boxList[0].center.Y);
 
-                point_X_C_zheng = (Int32)(boxList[1].center.X);
-                point_Y_C_zheng = (Int32)(boxList[1].center.Y);
-            }
-            else
-            {
-                point_X_C_chang = (Int32)(boxList[1].center.X);
-                point_Y_C_chang = (Int32)(boxList[1].center.Y);
+                    point_X_C_zheng = (Int32)(boxList[1].center.X);
+                    point_Y_C_zheng = (Int32)(boxList[1].center.Y);
+                }
+                else
+                {
+                    point_X_C_chang = (Int32)(boxList[1].center.X);
+                    point_Y_C_chang = (Int32)(boxList[1].center.Y);
 
-                point_X_C_zheng = (Int32)(boxList[0].center.X);
-                point_Y_C_zheng = (Int32)(boxList[0].center.Y);
-            }
-        
+                    point_X_C_zheng = (Int32)(boxList[0].center.X);
+                    point_Y_C_zheng = (Int32)(boxList[0].center.Y);
+                }
+           
+           }
+           
+           
             double[,] a = new double[3, 3] { { fc1_c, 0, cc1_c }, { 0, fc2_c, cc2_c }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11_c, R21_c, T1_c }, { R12_c, R22_c, T2_c }, { R13_c, R23_c, T3_c } };
              
@@ -902,22 +934,31 @@ namespace SimpleImageDisplaySample
             }
             else if (Flag_B == 3) //3:圆形
             {
-                //图像中圆形的位置
-                point_X_circle = (Int32)(circles[0].Center.X);
-                point_Y_circle = (Int32)(circles[0].Center.Y);
+                if (circles.Count() == 0)
+                {
+                    Console.WriteLine("C相机中的圆形没检测到！");
+                    Flag_B = 1;
+                }
+                else
+                {
+                    //图像中圆形的位置
+                    point_X_circle = (Int32)(circles[0].Center.X);
+                    point_Y_circle = (Int32)(circles[0].Center.Y);
 
-                //circle_location
-                double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
+                    //circle_location
+                    double[,] image_pix = new double[3, 1] { { point_X_circle }, { point_Y_circle }, { 1 } };
 
-                Matrix.MatrixMultiply(a, b, ref c);
-                Matrix.MatrixOpp(c, ref c_);
-                Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix, ref world_cor);
 
-                world_X_circle_c = (world_cor[0, 0] / s) * 1000;
-                world_Y_circle_c = (world_cor[1, 0] / s) * 1000;
+                    world_X_circle_c = (world_cor[0, 0] / s) * 1000;
+                    world_Y_circle_c = (world_cor[1, 0] / s) * 1000;
 
-                public_X = world_X_circle_c;
-                public_Y = world_Y_circle_c;
+                    public_X = world_X_circle_c;
+                    public_Y = world_Y_circle_c;
+                }
+                
             }
             else if(Flag_B == 2) //2:正方形
             {
@@ -937,7 +978,7 @@ namespace SimpleImageDisplaySample
 
             }
             else{
-                Console.WriteLine("输入的Flag_B的值出现错误！");
+                Console.WriteLine("输入的Flag_B的值不为1,2,3，可能原因是B相机判断形状失败！");
             }
         }
         #endregion
