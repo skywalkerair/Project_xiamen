@@ -505,7 +505,7 @@ namespace SimpleImageDisplaySample
             }
         }   
        
-        //TODO:按下开始键打开JAI相机开始处理图像，主要函数在这里    
+        //TODO:自己写的Main函数就在这里    
         private void StartButton_Click(object sender, EventArgs e)
         {
             if (myFactory.CameraList[0] != null)
@@ -531,8 +531,12 @@ namespace SimpleImageDisplaySample
                     Flag_B = m;
                     myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
                     myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
-                    //ImageProcess_A(ImagePath_A);
-                    ImageProcess_C(ImagePath_C);
+                    ImageProcess_A(ImagePath_A);
+                    //if(Flag_B == 2)
+                    //{
+                    //    ImageProcess_C(ImagePath_C);
+                    //}
+                    //ImageProcess_C(ImagePath_C);
                     
                     SendDataToModBus(public_X, public_Y);
                 
@@ -540,7 +544,7 @@ namespace SimpleImageDisplaySample
                
 
                 //B相机Do something 
-                //ImageProcess_B(ImagePath_B);
+                ImageProcess_B(ImagePath_B);
                
                 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
                 //为1则表示检测到了长方形，
