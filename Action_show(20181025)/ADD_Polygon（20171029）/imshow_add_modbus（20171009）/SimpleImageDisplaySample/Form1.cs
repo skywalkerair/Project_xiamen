@@ -77,7 +77,7 @@ namespace SimpleImageDisplaySample
             //为1则表示检测到了长方形，
             //2则表示检测到了正方形，
             //3则表示检测到了圆形
-            int Flag_B  = 0;
+            int Flag_B  = 1;
     
             int AreaCircle;
 
@@ -280,46 +280,46 @@ namespace SimpleImageDisplaySample
             #region C相机_定标参数的初始化
             //加载标定参数
             StringBuilder str_c = new StringBuilder(100);
-            GetPrivateProfileString("标定", "fc1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "fc1", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 fc1_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "fc2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "fc2", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 fc2_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "cc1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "cc1", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 cc1_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "cc2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "cc2", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 cc2_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R11", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R11", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R11_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R12", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R12", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R12_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R13", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R13", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R13_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R21", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R21", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R21_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R22", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R22", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R22_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "R23", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "R23", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 R23_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "T1", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "T1", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 T1_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "T2", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "T2", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 T2_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "T3", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "T3", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 T3_c = Convert.ToDouble(str_c.ToString());
-            GetPrivateProfileString("标定", "s", "", str_c, 100, Application.StartupPath + "/str_C_C.ini");
+            GetPrivateProfileString("标定", "s", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
             if (str_c.ToString() != "")
                 s_c = Convert.ToDouble(str_c.ToString());
             #endregion
@@ -526,26 +526,32 @@ namespace SimpleImageDisplaySample
             
             while(true)
             {
-                myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
-                myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
-                ImageProcess_A(ImagePath_A);
-                ImageProcess_C(ImagePath_C);
-
-                SendDataToModBus(public_X,public_Y);
+                for (int m = 1; m<=3; m++)
+                {
+                    Flag_B = m;
+                    myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
+                    myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
+                    //ImageProcess_A(ImagePath_A);
+                    ImageProcess_C(ImagePath_C);
+                    
+                    SendDataToModBus(public_X, public_Y);
+                
+                }
+               
 
                 //B相机Do something 
-                ImageProcess_B(ImagePath_B);
+                //ImageProcess_B(ImagePath_B);
                
                 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
                 //为1则表示检测到了长方形，
                 //2则表示检测到了正方形，
                 //3则表示检测到了圆形
-                if(Flag_B == 1)
-                {
-                    ImageProcess_C(ImagePath_C);
+                //if(Flag_B == 1)
+                //{
+                //    ImageProcess_C(ImagePath_C);
                 
-                }
-                else continue;
+                //}
+                //else continue;
             }
         }
         private void StopButton_Click(object sender, EventArgs e)
