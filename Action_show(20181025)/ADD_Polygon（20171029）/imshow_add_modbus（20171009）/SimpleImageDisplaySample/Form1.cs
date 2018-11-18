@@ -42,6 +42,7 @@ namespace SimpleImageDisplaySample
         //ImagePath
         string ImagePath_A = ".\\saveimg.bmp";
         string ImagePath_C = ".\\saveimgC.bmp";
+        
 
         //TODO:这里B相机的图像还没添加进去
         string ImagePath_B = ".\\saveimgB.bmp";
@@ -107,7 +108,9 @@ namespace SimpleImageDisplaySample
         private FlyCapture2Managed.Gui.CameraControlDialog m_camCtlDlg;
         private ManagedCameraBase m_camera = null;
         private ManagedImage m_rawImage;
+        private ManagedImage m_raw_B_Image;
         private ManagedImage m_processedImage;
+        private ManagedImage m_processed_B_Image;
         private bool m_grabImages;
         private AutoResetEvent m_grabThreadExited;
         private BackgroundWorker m_grabThread;
@@ -143,7 +146,9 @@ namespace SimpleImageDisplaySample
             /*************Fly__init***************/
             #region /*Fly-B相机初始化*/
             m_rawImage = new ManagedImage();
+            m_raw_B_Image = new ManagedImage();
             m_processedImage = new ManagedImage();
+            m_processed_B_Image = new ManagedImage();
             m_camCtlDlg = new CameraControlDialog();
             m_grabThreadExited = new AutoResetEvent(false);  //非终止
             #endregion
@@ -202,12 +207,6 @@ namespace SimpleImageDisplaySample
                     embeddedInfo.timestamp.onOff = true;
                     m_camera.SetEmbeddedImageInfo(embeddedInfo);
 
-                    m_camera.StartCapture();
-
-                    m_grabImages = true;
-
-                    //Function call
-                    StartGrabLoop();
               }
                 catch (FC2Exception ex)
                 {
@@ -228,7 +227,7 @@ namespace SimpleImageDisplaySample
             }
 
             //TODO:Show()函数试一下什么效果
-            //Show();
+            Show();
             #endregion
             #region A相机_定标参数的初始化
             //加载标定参数
@@ -327,12 +326,22 @@ namespace SimpleImageDisplaySample
        
         /**************FLY-B相机**************/
         #region FLY-B相机
+        #region B相机--更新界面
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
+            //pictureBox_B.Image = m_processed_B_Image.bitmap;
+
             pictureBox_B.Image = m_processedImage.bitmap;
+            //m_processedImage.Save(ImagePath_B);
+            // pixel format of the ManagedImage is RGB or RGBU.
+            ///System.Drawing.Bitmap bitmap = m_processedImage.bitmap;
+            // Save the image
+            //bitmap.Save(ImagePath_B);
+            //ImageProcess_B(ImagePath_B);
             pictureBox_B.Invalidate();     
         }
-
+      
+        #endregion
         //Form1_FormClosing 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -378,7 +387,12 @@ namespace SimpleImageDisplaySample
             {
                 try
                 {
+                    // Retrieve an image
                     m_camera.RetrieveBuffer(m_rawImage);
+                    m_rawImage.Save(ImagePath_B);
+                    //m_camera.RetrieveBuffer(m_raw_B_Image);
+                   // m_raw_B_Image.Convert(FlyCapture2Managed.PixelFormat.PixelFormatBgr, m_processed_B_Image);
+                    
                 }
                 catch (FC2Exception ex)
                 {
@@ -389,8 +403,10 @@ namespace SimpleImageDisplaySample
                 lock (this)
                 {
                     m_rawImage.Convert(FlyCapture2Managed.PixelFormat.PixelFormatBgr, m_processedImage);
+                    //m_processedImage.Save(ImagePath_B);
+                    //m_raw_B_Image.Convert(FlyCapture2Managed.PixelFormat.PixelFormatBgr, m_processed_B_Image);
+ 
                 }
-                
                 worker.ReportProgress(0);    //进度流程  
             }
             m_grabThreadExited.Set();
@@ -402,11 +418,8 @@ namespace SimpleImageDisplaySample
         {
         #region FLY相机启动
             m_camera.StartCapture();
-
             m_grabImages = true;
-
             StartGrabLoop();
-
             toolStripButtonStart.Enabled = false;
             toolStripButtonStop.Enabled = true;
         #endregion
@@ -531,7 +544,12 @@ namespace SimpleImageDisplaySample
                     Flag_B = m;
                     myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
                     myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
+                    //ImageProcess_B(ImagePath_B);
+                    
+                    ImageProcess_C(ImagePath_C);
                     ImageProcess_A(ImagePath_A);
+                    ImageProcess_B(ImagePath_B);
+                    
                     //if(Flag_B == 2)
                     //{
                     //    ImageProcess_C(ImagePath_C);
@@ -541,10 +559,10 @@ namespace SimpleImageDisplaySample
                     SendDataToModBus(public_X, public_Y);
                 
                 }
-               
+
 
                 //B相机Do something 
-                ImageProcess_B(ImagePath_B);
+                ;
                
                 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
                 //为1则表示检测到了长方形，
@@ -595,6 +613,114 @@ namespace SimpleImageDisplaySample
         
         /*******关于图像处理程序**********/
         //图像处理程序模块
+        //TODO:B相机的处理程序还没写，这里还有打光的技术，在论文中可以添加
+        #region 相机B的处理过程
+        private void ImageProcess_B(string ImagePath)
+        {
+            //Do something...
+            int chang = 0;
+            int zheng = 0;
+            int yuan = 0;
+
+            /*canny算子处理图像*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
+            Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+
+            Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
+
+            double cannyThreshold = 10.0;
+            double circleAccumulatorThreshold = 20.0;
+
+            #region Find circles
+            /*检测圆形*/
+            circles = MedianImage.HoughCircles(
+                new Gray(cannyThreshold),
+                new Gray(circleAccumulatorThreshold),
+                1.5, //Resolution of the accumulator used to detect centers of the circles
+                MedianImage.Width, //min distance 
+                20, //min radius
+                0 //max radius
+                )[0]; //Get the circles from the first channel
+            #endregion
+
+            #region Canny and edge detection
+            double cannyThresholdLinking = 100.0;
+            Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
+
+            #endregion
+
+            #region Find rectangles
+            //存放矩形的形状
+            List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
+            // PointF[] GetVertices();
+            using (MemStorage storage1 = new MemStorage()) //allocate storage for contour approximation
+                for (
+                   Contour<Point> contours = cannyEdges.FindContours(
+                      Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
+                      Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
+                      storage1);
+                   contours != null;
+                   contours = contours.HNext)
+                {
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage1);//注意这里的The desired approximation accuracy为0.04
+                    //Console.WriteLine("currentContour.Area:" + currentContour.Area);
+                    if (currentContour.Area > 400) //only consider contours with area greater than 4300
+                    {
+                        if (currentContour.Total == 4)  //The contour has 4 vertices.
+                        {
+                            #region determine if all the angles in the contour are within [80, 100] degree
+                            bool isRectangle = true;
+                            Point[] pts = currentContour.ToArray();
+                            LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
+
+                            for (int i = 0; i < edges.Length; i++)
+                            {
+                                double angle = Math.Abs(
+                                   edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
+                                if (angle < 80 || angle > 100)
+                                {
+                                    isRectangle = false;
+                                    break;
+                                }
+                            }
+                            #endregion
+                            if (isRectangle) boxList.Add(currentContour.GetMinAreaRect());
+                        }
+                    }
+                }
+            #endregion
+
+            #region draw rectangles and circles
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            //draw the rectangles           
+            foreach (MCvBox2D box1 in boxList)
+            {
+                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
+                Console.WriteLine("B相机中的矩形的面积：" + boxList[0].size.Height);
+            }
+
+            //draw the circles
+            foreach (CircleF circle in circles)
+            {
+                AreaCircle = (Int32)(circle.Area);
+                if (AreaCircle >= 3000)
+                {
+                    triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 3);
+                    yuan = 1;
+                }
+                else { continue; }
+            }
+            #endregion
+
+            /*显示结果，在B相机的图像中显示出来*/
+            //pictureBox_A_processed.Image = triangleRectangleImage.ToBitmap();
+            pictureBox_B_Processing.Image = triangleRectangleImage.ToBitmap();
+
+        }
+
+        #endregion
+
+
         #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
@@ -697,7 +823,7 @@ namespace SimpleImageDisplaySample
             
             /*显示结果，在A相机的图像中显示出来*/
             pictureBox_A_processed.Image = triangleRectangleImage.ToBitmap();
-            pictureBox_Processing.Image = cannyEdges.ToBitmap();
+            //pictureBox_B_Processing.Image = cannyEdges.ToBitmap();
 
             double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
             double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
@@ -774,8 +900,6 @@ namespace SimpleImageDisplaySample
         #region 相机C的处理过程
         private void ImageProcess_C(string ImagePath)
         {
-        
-           
             int point_X_circle = 0;
             int point_Y_circle = 0;
 
@@ -993,15 +1117,7 @@ namespace SimpleImageDisplaySample
         }
         #endregion
     
-        //TODO:B相机的处理程序还没写，这里还有打光的技术，在论文中可以添加
-        #region 相机B的处理过程
-        private void ImageProcess_B(string ImagePath)
-        {
-            //Do something...
-
-        }
-
-        #endregion
+      
         /**********Modbus程序***********/
         #region ModBus程序
        
@@ -1041,6 +1157,7 @@ namespace SimpleImageDisplaySample
             this.Wrapper.Dispose();
         }
         #endregion
+
 
         
      

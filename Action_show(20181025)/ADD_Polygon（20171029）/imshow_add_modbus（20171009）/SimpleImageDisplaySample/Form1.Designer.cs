@@ -54,7 +54,7 @@ namespace SimpleImageDisplaySample
             this.toolStripMenuItem_C = new System.Windows.Forms.Button();
             this.pictureBox_C_processed = new System.Windows.Forms.PictureBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.pictureBox_Processing = new System.Windows.Forms.PictureBox();
+            this.pictureBox_B_Processing = new System.Windows.Forms.PictureBox();
             this.label6 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
@@ -63,7 +63,7 @@ namespace SimpleImageDisplaySample
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Processing)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B_Processing)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -296,7 +296,6 @@ namespace SimpleImageDisplaySample
             this.pictureBox_C_processed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox_C_processed.TabIndex = 32;
             this.pictureBox_C_processed.TabStop = false;
-            
             // 
             // label5
             // 
@@ -308,15 +307,16 @@ namespace SimpleImageDisplaySample
             this.label5.TabIndex = 33;
             this.label5.Text = "Camera_C_processed";
             // 
-            // pictureBox_Processing
+            // pictureBox_B_Processing
             // 
-            this.pictureBox_Processing.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBox_Processing.Location = new System.Drawing.Point(385, 448);
-            this.pictureBox_Processing.Name = "pictureBox_Processing";
-            this.pictureBox_Processing.Size = new System.Drawing.Size(367, 343);
-            this.pictureBox_Processing.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox_Processing.TabIndex = 34;
-            this.pictureBox_Processing.TabStop = false;
+            this.pictureBox_B_Processing.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBox_B_Processing.Location = new System.Drawing.Point(385, 448);
+            this.pictureBox_B_Processing.Name = "pictureBox_B_Processing";
+            this.pictureBox_B_Processing.Size = new System.Drawing.Size(367, 343);
+            this.pictureBox_B_Processing.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox_B_Processing.TabIndex = 34;
+            this.pictureBox_B_Processing.TabStop = false;
+
             // 
             // label6
             // 
@@ -334,7 +334,7 @@ namespace SimpleImageDisplaySample
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1376, 818);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.pictureBox_Processing);
+            this.Controls.Add(this.pictureBox_B_Processing);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.pictureBox_C_processed);
             this.Controls.Add(this.toolStripMenuItem_C);
@@ -364,7 +364,7 @@ namespace SimpleImageDisplaySample
             this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Processing)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B_Processing)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -398,7 +398,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Button toolStripMenuItem_C;
         private System.Windows.Forms.PictureBox pictureBox_C_processed;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.PictureBox pictureBox_Processing;
+        private System.Windows.Forms.PictureBox pictureBox_B_Processing;
         private System.Windows.Forms.Label label6;
        
     }
