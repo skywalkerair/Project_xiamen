@@ -138,6 +138,12 @@
 ​	git commit -m "XXXXXXX"
 ​	git push 
 
+***当git pull 遇到问题时:***
+
+git stash 
+
+git pull 
+
 ~~~git
 ***Quick setup — if you’ve done this kind of thing before***
 ******************************************************
