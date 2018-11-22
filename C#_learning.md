@@ -11,6 +11,10 @@ public Form1()
 {
     InitializeComponent();
     //调用初始化方法，其代码再Form1.Designer.cs文件中
+<<<<<<< Updated upstream
+=======
+     
+>>>>>>> Stashed changes
 }
 ~~~
 

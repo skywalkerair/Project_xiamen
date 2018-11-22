@@ -329,8 +329,12 @@ namespace SimpleImageDisplaySample
         }
        
         /**************FLY-B相机**************/
+<<<<<<< Updated upstream
         #region FLY-B相机
         #region B相机--更新界面
+=======
+        #region FLY-B相机--显示图像
+>>>>>>> Stashed changes
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
             //pictureBox_B.Image = m_processed_B_Image.bitmap;
@@ -393,10 +397,14 @@ namespace SimpleImageDisplaySample
                 {
                     // Retrieve an image
                     m_camera.RetrieveBuffer(m_rawImage);
+<<<<<<< Updated upstream
                     m_rawImage.Save(ImagePath_B);
                     //m_camera.RetrieveBuffer(m_raw_B_Image);
                    // m_raw_B_Image.Convert(FlyCapture2Managed.PixelFormat.PixelFormatBgr, m_processed_B_Image);
                     
+=======
+                
+>>>>>>> Stashed changes
                 }
                 catch (FC2Exception ex)
                 {
