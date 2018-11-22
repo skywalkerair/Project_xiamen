@@ -121,7 +121,50 @@
 
 
 
+***20181119代码更新：***
 
+* 加入了B相机的判断程序
+
+***20181121代码更新：***
+
+* 完成中期检查的PPT
+
+~~~markdown
+## 工件识别算法总体思路
+Step1:
+	将输入的图像转化成灰度图，为后续的图像处理减少运算量
+Step2：
+	图像预处理，例如图像降噪等操作
+Step3:
+	图像边缘提取，Canny算子、线检测、圆检测
+Step4:
+	在Canny算子处理后的二值图像中寻找轮廓，采用轮廓逼近方法找出工件形状
+Step5：
+	计算出形状的中心点在图像中的坐标值
+
+~~~
+
+
+
+~~~pseudocode
+## 伪代码实现
+image = imread("A.jpg");
+if image == Color then image.Gray()
+	else 
+		image.filter()
+		image.cannyEdges()
+		image.HoughCircles()
+		image.FindContours()
+		
+		X = image.X()
+		Y = image.Y()
+	
+		Modbus(X,Y)
+		
+		
+
+
+~~~
 
 
 

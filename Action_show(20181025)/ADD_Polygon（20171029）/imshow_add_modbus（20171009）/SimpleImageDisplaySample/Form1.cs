@@ -66,8 +66,11 @@ namespace SimpleImageDisplaySample
 
 
             //将选择好需要传给Modbus的值public_x&&public_y
-            double public_X = 0;
-            double public_Y = 0;
+            double public_X_A = 0;
+            double public_Y_A = 0;
+
+            double public_X_C = 0;
+            double public_Y_C = 0;
             #endregion
 
             #region /*设置区分长方形，正方形和圆形的标志位*/
@@ -117,14 +120,15 @@ namespace SimpleImageDisplaySample
         #endregion
         
             #region /*JAI相机和图像处理变量声明*/
+        //JAI相机
+        CFactory myFactory = new CFactory();
         //图像处理--圆
         public CircleF circle;
         public CircleF[] circles;
         //图像处理--矩形
         public MCvBox2D box1;
         public List<MCvBox2D> boxList;
-        //JAI相机
-        CFactory myFactory = new CFactory();
+        
          
         // Opened camera obejct
         //CCamera myCamera1;
@@ -539,41 +543,45 @@ namespace SimpleImageDisplaySample
             
             while(true)
             {
-                for (int m = 1; m<=3; m++)
-                {
-                    Flag_B = m;
-                    myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
-                    myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
-                    //ImageProcess_B(ImagePath_B);
-                    
-                    ImageProcess_C(ImagePath_C);
-                    ImageProcess_A(ImagePath_A);
-                    ImageProcess_B(ImagePath_B);
-                    
-                    //if(Flag_B == 2)
-                    //{
-                    //    ImageProcess_C(ImagePath_C);
-                    //}
-                    //ImageProcess_C(ImagePath_C);
-                    
-                    SendDataToModBus(public_X, public_Y);
-                
-                }
-
-
-                //B相机Do something 
-                ;
                
+                myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
+                myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
+
+                ImageProcess_A(ImagePath_A);
+                SendDataToModBus(public_X_A, public_X_A);
+
+                ImageProcess_B(ImagePath_B);
+                if (Flag_B != 0)
+                {
+                    if(Flag_B == 1)
+                    {
+                        //chang;
+                        ImageProcess_C(ImagePath_C);
+                        SendDataToModBus(public_X_C, public_Y_C);
+                    }
+                    else if(Flag_B ==2)
+                    {
+                        //zheng;
+                        ImageProcess_C(ImagePath_C);
+                        SendDataToModBus(public_X_C, public_Y_C);
+                    }
+                    else if(Flag_B ==3)
+                    {
+                        //yuan;
+                        ImageProcess_C(ImagePath_C);
+                        SendDataToModBus(public_X_C, public_Y_C);
+                    }
+                }
+                else 
+                { 
+                    //wait();
+                    continue;
+                }
+                                           
                 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
-                //为1则表示检测到了长方形，
-                //2则表示检测到了正方形，
-                //3则表示检测到了圆形
-                //if(Flag_B == 1)
-                //{
-                //    ImageProcess_C(ImagePath_C);
-                
-                //}
-                //else continue;
+                //为1则表示检测到了长方形,
+                //2则表示检测到了正方形,
+                //3则表示检测到了圆形.
             }
         }
         private void StopButton_Click(object sender, EventArgs e)
@@ -720,7 +728,6 @@ namespace SimpleImageDisplaySample
 
         #endregion
 
-
         #region 相机A的处理过程
         private void ImageProcess_A(string ImagePath)
         {
@@ -853,8 +860,8 @@ namespace SimpleImageDisplaySample
                     world_X = (world_cor[0, 0] / s) * 1000;
                     world_Y = (world_cor[1, 0] / s) * 1000;
 
-                    public_X = world_X;
-                    public_Y = world_Y;
+                    public_X_A = world_X;
+                    public_Y_A = world_Y;
 
                     Flag_A = 1;//找到了矩形，现在需要找圆形了 
                 }
@@ -883,15 +890,15 @@ namespace SimpleImageDisplaySample
                     world_X_circle = (world_cor[0, 0] / s) * 1000;
                     world_Y_circle = (world_cor[1, 0] / s) * 1000;
 
-                    public_X = world_X_circle;
-                    public_Y = world_Y_circle;
+                    public_X_A = world_X_circle;
+                    public_Y_A = world_Y_circle;
 
                     Flag_A = 0;
                 }
             }
             else
             {
-                Console.WriteLine("Nothing is found!");
+                Console.WriteLine("Flag_A is not 0||1,Flag is given bad!");
                 Flag_A = 0;
             }
         }
@@ -903,7 +910,6 @@ namespace SimpleImageDisplaySample
             int point_X_circle = 0;
             int point_Y_circle = 0;
 
-            /*canny算子处理图像*/
             Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
             Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
             //加入了中值滤波器去噪
@@ -922,7 +928,7 @@ namespace SimpleImageDisplaySample
                 0 //max radius
                 )[0]; //Get the circles from the first channel
             #endregion
-            
+            /*canny算子处理图像*/
             #region Canny and edge detection
             double cannyThresholdLinking = 50.0;
             
@@ -1063,8 +1069,8 @@ namespace SimpleImageDisplaySample
                 world_X_c = (world_cor[0, 0] / s) * 1000;
                 world_Y_c = (world_cor[1, 0] / s) * 1000;
 
-                public_X = world_X_c;
-                public_Y = world_Y_c;
+                public_X_C = world_X_c;
+                public_Y_C = world_Y_c;
             }
             else if (Flag_B == 3) //3:圆形
             {
@@ -1089,8 +1095,8 @@ namespace SimpleImageDisplaySample
                     world_X_circle_c = (world_cor[0, 0] / s) * 1000;
                     world_Y_circle_c = (world_cor[1, 0] / s) * 1000;
 
-                    public_X = world_X_circle_c;
-                    public_Y = world_Y_circle_c;
+                    public_X_C = world_X_circle_c;
+                    public_Y_C = world_Y_circle_c;
                 }
                 
             }
@@ -1107,8 +1113,8 @@ namespace SimpleImageDisplaySample
                 world_X_c = (world_cor[0, 0] / s) * 1000;
                 world_Y_c = (world_cor[1, 0] / s) * 1000;
 
-                public_X = world_X_c;
-                public_Y = world_Y_c;
+                public_X_C = world_X_c;
+                public_Y_C = world_Y_c;
 
             }
             else{
