@@ -1,208 +1,121 @@
-# 文件说明
+## 课题进展
 
-* 2018.10.23：zsx_PC=>备份实验室PC端的厦门科技局项目文件
-* 总结和整理整个项目，理清楚整个项目的流程，并规划项目的下一步
+**20181226：**
 
-## 项目总体要达到的目标：
+1. 完成了RS232串口通讯的测试代码，也将代码融合到了厦门科技局的总体代码中（C#版）
 
-1. 精度的保证：实现三个图像的精准定位，提高精度：
+2. 待机械爪到来之后，做好测试，测量好每个工件的抓取大小，设定好相应的参数，主要是力的大小
 
-   （1）精度包括三个精度：机械手端精度，定标精度，图像处理之后的物体精度
+设置好相应的逻辑，比如给一个信号就去抓，这个要设计好。
 
-2. 论文成果转化：把论文中的超分辨率重建的方法引入到实际的系统中
+***接下来：***
 
-3. 速度问题：在课题要求的速度下，实现运行
+1. 看modbus的程序，写成双工通讯
 
+***20181227：***
 
+1. 增加两个按键=>设置机械手的力控值和速度
 
-***20181025-任务***：
-
-1. 备份当前目录项目的文件（DONE）
-2. 简化代码，只显示长方形，正方形和
-3. 圆形（DONE）
-4. 将三个相机的图像处理都加进去（）
-5. 两个相机的位置定标问题，位置坐标解决方案,两套定标程序
-6. 是否需要在通讯端增加反馈
-7. 速度问题，提速
-
-
-
-***20181031代码更新***
-
-* 将所有的模块就精简了（DONE）
-
-* 加入了C相机的定标模块（***未完成***：还没有测试）
-
-* A盘中的长方形，正方形和圆形的区分要与C盘中的长方形，正方形和圆形对应
-
-  ***11月1号需要做的***：
-
-  * 将B相机的程序完成，查找代码，保存图像，处理图像(需要查看编程的flycapture的源代码，看看如何保存图片加载图片)
-  * 将C相机的定标程序测试完成
-  * Modbus的双工通讯程序要完成
-
-***20181101代码更新***
-
-* 将C相机的图像显示出来了，标定还没进行，今天优化了图像处理，将圆形更好的显示了出来
-
-  ***问题：***在边缘提取之后有很多的边缘，需要选一个，只能是最优的那个，怎么选，是个问题
-
-***20181104代码更新***
-
-* 更新：屏蔽掉了定时器，直接在开始 JAI 相机的时候就直接进行图像的保存和处理
-* 总体思路：处理A相机的图像，得到一个坐标，然后直接将值传给机械手(**考虑一个传值的问题，先传圆形（现在想默认先传圆形）还是先传长方形或者正方形（谁面积大就选谁）**)，监听B相机反馈的值（B相机初始值我设为0，如果B相机反馈的值是一个非0，比如1代表是长方形，2代表正方形，3代表圆形），根据返回的值，直接在C相机中找到相应形状的底座坐标
-* 具体的解决方案：
-
-1. 在A相机处理程序中，直接将抓取顺序定下来，首先设置Flag == 0,（**public_X和public_Y这两个值是最后我要传给Modbus的值，这里要赋值**）直接传圆形坐标位置给modbus，然后将Flag设置成为非0的值
-2. 这里就需要重新写A相机的处理程序，将顺序排出来：**使用面积排序，先看看装矩形的list里面的形式是什么样子的？**
-3. ***B相机的程序还是一段空白***
-4. C相机要跟随B相机的判定结果来编程
-
-***明天要做的***：
-
-1. 将A相机中的长方形和正方形选出来，利用面积
-2. C相机中的长方形和正方形也选出来
-3. B相机的程序写入
-
-***20181106代码更新：***
-
-* 优化了代码，将A物料盘中没有物件时的情况考虑了进去，代码健壮性增强
-* C物料盘中代码优化还没做，还要考虑长方形，正方形和圆形的情况
-* B相机的增加代码
-
-***20181115代码更新：***
-
-* 先完成c盘中没有物件的情况（done）
-
-  1. 区分出了长方形和正方形，通过比较他们的宽的长度确定形状
-
-  2. 通过B相机的识别得到Flag_B的取值：
-
-     ​		 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
-
-     ​                //为1则表示检测到了长方形，
-
-     ​                //2则表示检测到了正方形，
-
-     ​                //3则表示检测到了圆形
-
-* 加B的代码
-
-***20181116代码更新：***
-
-* 增加了C相机的代码鲁棒性，在没有灯光或者检测不到的情况下的应对策略（done）
-* 增加了滤波算法将其他多余的噪声都过滤掉了，使得检测的精度和准确率都有所提升（done）
-* C相机的定标（processing）(done)
-
-***20181117代码更新：***
-
-* C相机的定标没问题（done）
-* A相机的定标重新设定（done）
-
-***20181118代码更新：***
-
-* 更新了机械手端的代码逻辑
-* B相机的代码更新完成（done，检测物件没问题）
-* A相机的定标更新也完成(done，解决了相机的中物件消失的情况)
-* C相机的定标更新也完成(done，解决了相机的中物件消失的情况)
-* 三个相机有时会冲突的Bug问题（修复Bug中）
-* 项目要求精度是：0.5MM
-  * 机械手的精度是0.001MM（满足要求）
-  * A相机和C相机的定标精度都是0.1MM（满足要求）
-  * 图像处理后的精度因为是找中心点，所以精度是与各个相机的定标精度相一致（满足要求）
-  * B相机的精度还在测量和代码改进中（未完成）
-
-***接下来要完成的任务：***
-
-1. 在B相机的精度问题（待解决）
-2. 在B相机的图像处理端，检测到不同形状之后的Flag值的选取情况（通过Flag的取值决定传给机械手的坐标值）
-3. 将重建成果加入视觉系统中（正在想办法）
-4. 速度问题（此问题相对比较容易）
-
-
-
-***20181119代码更新：***
-
-* 加入了B相机的判断程序
-
-***20181121代码更新：***
-
-* 完成中期检查的PPT
-
-~~~markdown
-## 工件识别算法总体思路
-Step1:
-	将输入的图像转化成灰度图，为后续的图像处理减少运算量
-Step2：
-	图像预处理，例如图像降噪等操作
-Step3:
-	图像边缘提取，Canny算子、线检测、圆检测
-Step4:
-	在Canny算子处理后的二值图像中寻找轮廓，采用轮廓逼近方法找出工件形状
-Step5：
-	计算出形状的中心点在图像中的坐标值
-
+~~~c#
+byte[] -> string:
+public static string ByteArrayToString(byte[] a)
+{
+    string hex = BitConverter.ToString(a);
+    return hex.Peplace("-","");
+}
 ~~~
 
-
-
-~~~pseudocode
-## 伪代码实现
-image = imread("A.jpg");
-if image == Color then image.Gray()
-	else 
-		image.filter()
-		image.cannyEdges()
-		image.HoughCircles()
-		image.FindContours()
-		
-		X = image.X()
-		Y = image.Y()
-	
-		Modbus(X,Y)
-		
-		
-
-
-~~~
+https://blog.csdn.net/andrewniu/article/details/72469023
 
 
 
 
 
+***20181231：*** On the end of the year of 2018,there are too many things I have to do.Don't be afraid of them,just do it.
 
+### 机械爪程序总结：
 
----
+1. SerialPort sp = new SerialPort();使用C#的串口通讯库
 
-***Git的使用说明***
+2. 设置串口的四个要素：串口名，波特率，数据位，停止位
 
-***Operation:***
-​	git add .
-​	git commit -m "XXXXXXX"
-​	git push 
+3. 指令帧命令：
 
-***当git pull 遇到问题时:***
+   ~~~C#
+   byte[] SReadStatus = new byte[]{0xEB,0x90,0x01,0x01,0x14,0x16};//读取夹爪的状态，可得到当前开口的大小，夹持力和当前阈值；
+   byte[] SSetData = new byte[] { 0xEB, 0x90, 0x01,0x04,0x10,0x32,0x64,0x00,0xAB };//设置夹爪的抓取数据     
+   byte[] SRelease = new byte[] {  0xEB, 0x90, 0x01, 0x03, 0x11, 0xE8,0x03,  0x00 };//设置夹爪的松开速度，MAX = 1000(10) = 0x03E8(16);将高位放在后面，以byte[]的形式发送
+   ~~~
 
-git stash 
+   ~~~C#
+   # 设置抓手的配置
+   private void function1(string power,string speed)
+   {
+       //将string类型=>int 类型
+       int IntPower = int.Parse(Power);
+       //int类型 =>byte[]类型
+       byte[] BytePower = BitConverter.GetBytes(IntPower);
+   }
+   
+   
+   //TODO:Notice:这里值得注意，加起来的总和需要使用高8位和低8位来表示
+   所以这里用int ADD = 0;//四个字节
+   byte[] ADD是四个字节的
+   BitConverter.GetBytes（int）：自动将低字节放在前面，高字节放后面
+   ~~~
 
-git pull 
+   4. 优化了代码，提高了发送抓取指令的鲁棒性
+   5. 将收到的返回消息解码显示，已解决
 
-~~~git
-***Quick setup — if you’ve done this kind of thing before***
-******************************************************
-（1)…or create a new repository on the command line
- echo "# Project_xiamen" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/skywalkerair/Project_xiamen.git
-git push -u origin master
-（2）…or push an existing repository from the command line
- git remote add origin https://github.com/skywalkerair/Project_xiamen.git
-git push -u origin master
-（3）…or import code from another repository
-You can initialize this repository with code from a Subversion, Mercurial, or TFS project.
+***20190102：***完成了抓手的RS232的串口通讯程序，手动控制
 
+***20190105：***
 
+1. 重新改Modbus的程序，随时可以按指令关掉(Done)
+2. 将RS232的程度预留出接口，可以通过判断值来抓取物体(X)
+
+完成了：
+
+1. 完成了Modbus的发送和接受的双工通讯程序代码，将Int 改为了float类型的数据
+2. 这里需要测试一下机械手端的Modbus传过来什么值
+   这里设置一个Flag,当读到Modbus返回的数据之后，更换我需要传递的值
+   这里需要测试一下，接收Modbus端的数据，并显示
+3. 写了两小段测试代码
+
+~~~C#
+//TODO:这里需要测试一下机械手端的Modbus传过来什么值
+        //TODO：这里设置一个Flag,当读到Modbus返回的数据之后，更换我需要传递的值
+        //TODO:接收Modbus端的数据，并显示
+        private void TestRecieveModbus()
+        {
+            
+            byte[] NewRecieve = new byte[4];
+            NewRecieve = this.Wrapper.Receive();
+
+            for (int i = 0; i < NewRecieve.Length; i++)
+            {
+                Console.WriteLine("NewRecieve[{0}]:{1}", i, NewRecieve[i]);
+            }
+        }
+
+        
+        //TODO:测试代码=》向Modbus传值，接收值
+        private void TestSendModBus(float x)
+        {
+            float WorldX = x;
+            Console.WriteLine("传值："+WorldX);
+            //int WorldY = y;
+
+            byte[] a = BitConverter.GetBytes(WorldX);
+
+            //byte[] b = BitConverter.GetBytes(WorldY);
+            byte[] SendData = new byte[a.Length];
+            Console.WriteLine("SendData.Length:"+SendData.Length);
+
+            a.CopyTo(SendData,0);
+            //b.CopyTo(SendData,a.Length);
+
+            this.Wrapper.Send(SendData);
+        }
 ~~~
 

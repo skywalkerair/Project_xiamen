@@ -1,0 +1,8 @@
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\bin\Release\SimpleImageDisplaySample.exe.config
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\SimpleImageDisplaySample.exe
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\XMProject.csprojResolveAssemblyReference.cache
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\SimpleImageDisplaySample.Calib_A.resources
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\SimpleImageDisplaySample.MainForm.resources
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\SimpleImageDisplaySample.Properties.Resources.resources
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\SimpleImageDisplaySample.Calib_C.resources
+D:\a-skywalker-zsx\GradeThree\Project_xiamen\zsx__PC\20180108_PC_xiamen\Serial_XMProject\XMProject\obj\Release\XMProject.csproj.GenerateResource.Cache
