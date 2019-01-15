@@ -56,7 +56,7 @@ namespace SimpleImageDisplaySample
             sendData.AddRange(ValueHelper.Instance.GetBytes((short)6));
             //5~6:后续的Byte数量（针对读请求，后续为6个byte）
 
-            sendData.Add(0xFF);//TODO:03改成0xFF
+            sendData.Add(0x03);//TODO:03改成0xFF
             //7:Unit Identifier:This field is used for intra-system routing purpose.
             
             sendData.Add((byte)FunctionCode.Read);
@@ -65,7 +65,7 @@ namespace SimpleImageDisplaySample
             sendData.AddRange(ValueHelper.Instance.GetBytes(ExtendStartingAddress));
             //9~10.起始地址
             
-            sendData.AddRange(ValueHelper.Instance.GetBytes((short)6));
+            sendData.AddRange(ValueHelper.Instance.GetBytes((short)30));
             //11~12.需要读取的寄存器数量
             
             this.socketWrapper.Write(sendData.ToArray());
@@ -84,7 +84,7 @@ namespace SimpleImageDisplaySample
             {
                 return new Byte[0];
             }
-            byte length = receiveData[8];//最后一个字节，记录寄存器中数据的Byte数
+            byte length = receiveData[6];//最后一个字节，记录寄存器中数据的Byte数
             byte[] result = new byte[length];
             Array.Copy(receiveData, 9, result, 0, length);
             return result;
@@ -98,10 +98,10 @@ namespace SimpleImageDisplaySample
         public override void Send(byte[] data)
         {
             //[0]:填充0，清掉剩余的寄存器
-            if (data.Length < 12)
+            if (data.Length < 4)
             {
                 var input = data;
-                data = new Byte[12];
+                data = new Byte[4];
                 Array.Copy(input, data, input.Length);
             }
             this.Connect();
@@ -117,7 +117,7 @@ namespace SimpleImageDisplaySample
             values.AddRange(ValueHelper.Instance.GetBytes((byte)(data.Length +7)));
             //5~6:后续的Byte数量
             
-            values.Add(0xFF);//TODO:这里将02改成了0xFF
+            values.Add(0x02);//TODO:这里将02改成了0xFF
             //7:Unit Identifier:This field is used for intra-system routing purpose.
             
             values.Add((byte)FunctionCode.Write);//TODO:功能码是16

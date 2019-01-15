@@ -68,13 +68,13 @@ namespace SimpleImageDisplaySample
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.btnReleaseMax = new System.Windows.Forms.Button();
+            this.btnReleasing = new System.Windows.Forms.Button();
             this.textPower = new System.Windows.Forms.TextBox();
-            this.btnSendData = new System.Windows.Forms.Button();
             this.textSpeed = new System.Windows.Forms.TextBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.txtShow_Recieved = new System.Windows.Forms.TextBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.btnGrabing = new System.Windows.Forms.Button();
             btnSetPorts = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
@@ -319,6 +319,7 @@ namespace SimpleImageDisplaySample
             // 
             this.timer2.Enabled = true;
             this.timer2.Interval = 1000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
             // toolStripMenuItem_C
             // 
@@ -439,11 +440,11 @@ namespace SimpleImageDisplaySample
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.btnGrabing);
             this.groupBox2.Controls.Add(this.label9);
             this.groupBox2.Controls.Add(this.label8);
-            this.groupBox2.Controls.Add(this.btnReleaseMax);
+            this.groupBox2.Controls.Add(this.btnReleasing);
             this.groupBox2.Controls.Add(this.textPower);
-            this.groupBox2.Controls.Add(this.btnSendData);
             this.groupBox2.Controls.Add(this.textSpeed);
             this.groupBox2.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox2.Location = new System.Drawing.Point(1139, 387);
@@ -473,16 +474,16 @@ namespace SimpleImageDisplaySample
             this.label8.TabIndex = 46;
             this.label8.Text = "Speed(1<X<255)";
             // 
-            // btnReleaseMax
+            // btnReleasing
             // 
-            this.btnReleaseMax.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnReleaseMax.Location = new System.Drawing.Point(119, 104);
-            this.btnReleaseMax.Name = "btnReleaseMax";
-            this.btnReleaseMax.Size = new System.Drawing.Size(100, 30);
-            this.btnReleaseMax.TabIndex = 43;
-            this.btnReleaseMax.Text = "ReleaseMax";
-            this.btnReleaseMax.UseVisualStyleBackColor = true;
-            this.btnReleaseMax.Click += new System.EventHandler(this.btnReleaseMax_Click);
+            this.btnReleasing.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnReleasing.Location = new System.Drawing.Point(119, 104);
+            this.btnReleasing.Name = "btnReleasing";
+            this.btnReleasing.Size = new System.Drawing.Size(100, 30);
+            this.btnReleasing.TabIndex = 43;
+            this.btnReleasing.Text = "Releasing";
+            this.btnReleasing.UseVisualStyleBackColor = true;
+            this.btnReleasing.Click += new System.EventHandler(this.btnReleaseMax_Click);
             // 
             // textPower
             // 
@@ -490,17 +491,6 @@ namespace SimpleImageDisplaySample
             this.textPower.Name = "textPower";
             this.textPower.Size = new System.Drawing.Size(100, 23);
             this.textPower.TabIndex = 45;
-            // 
-            // btnSendData
-            // 
-            this.btnSendData.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnSendData.Location = new System.Drawing.Point(6, 104);
-            this.btnSendData.Name = "btnSendData";
-            this.btnSendData.Size = new System.Drawing.Size(100, 30);
-            this.btnSendData.TabIndex = 42;
-            this.btnSendData.Text = "SendData";
-            this.btnSendData.UseVisualStyleBackColor = true;
-            this.btnSendData.Click += new System.EventHandler(this.btnSend_Test_Data_Click);
             // 
             // textSpeed
             // 
@@ -530,7 +520,18 @@ namespace SimpleImageDisplaySample
             // 
             // timer1
             // 
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timer1.Interval = 1000;
+            // 
+            // btnGrabing
+            // 
+            this.btnGrabing.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnGrabing.Location = new System.Drawing.Point(6, 104);
+            this.btnGrabing.Name = "btnGrabing";
+            this.btnGrabing.Size = new System.Drawing.Size(100, 30);
+            this.btnGrabing.TabIndex = 42;
+            this.btnGrabing.Text = "Grabing";
+            this.btnGrabing.UseVisualStyleBackColor = true;
+            this.btnGrabing.Click += new System.EventHandler(this.btnGrabing_Click);
             // 
             // MainForm
             // 
@@ -628,12 +629,12 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.TextBox txtShow_Recieved;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Button btnSendData;
-        private System.Windows.Forms.Button btnReleaseMax;
+        private System.Windows.Forms.Button btnReleasing;
         private System.Windows.Forms.TextBox textSpeed;
         private System.Windows.Forms.TextBox textPower;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Button btnGrabing;
        
     }
 }

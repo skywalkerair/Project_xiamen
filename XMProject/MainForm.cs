@@ -8,12 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-//SerialPorts packages
+//导入 串口通讯控制机械爪
 using System.IO.Ports;
 using System.IO;
 using System.Threading;
 
-//导入Emgu.CV
+//导入 Emgu.CV
 using Emgu.CV;
 using Emgu.CV.UI;
 using Emgu.CV.CvEnum;
@@ -25,12 +25,12 @@ using System.Runtime.InteropServices; // 后面的[DllImport("kernel32")]
 using System.Drawing.Imaging;
 using System.Diagnostics;
 
-//导入自己的Matrix矩阵模块
+//导入 自己的Matrix矩阵模块
 using matrix_test;
 
-//导入JAI
+//导入 JAI
 using Jai_FactoryDotNET;
-//导入flycapture
+//导入 flycapture
 using FlyCapture2Managed;
 using FlyCapture2Managed.Gui;
 
@@ -46,7 +46,7 @@ namespace SimpleImageDisplaySample
         #region RS232初始化变量
         /*****  机械爪的初始化  ******/
         //读取夹爪的状态:可得到当前开口的大小，夹持力当前值和阈值；
-        byte[] SReadStatus = new byte[] { 0xEB, 0x90, 0x01, 0x01, 0x14, 0x16 };
+        byte[] SReadStatus = new byte[] { 0xEB, 0x90, 0x01, 0x01, 0x14,0x16 };
         //对应的应答{0xEE,0x16,0x01,0x07,0x14,0xA0,0x0F,0x02,0x08,0x34,0x08,0x11}
         //设置夹爪的抓取数据
         byte[] GrabArray = new byte[] { 0xEB, 0x90, 0x01, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00 };
@@ -170,8 +170,9 @@ namespace SimpleImageDisplaySample
             /*************JAI__init***************/
             #region /*JAI-A&C相机初始化*/
             Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
+
             // Open the factory with the default Registry database
-            //error = myFactory.Open("");
+            error = myFactory.Open("");
             // Search for cameras and update all controls
             SearchButton_Click(null, null);
             #endregion 
@@ -186,6 +187,7 @@ namespace SimpleImageDisplaySample
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            timer2.Enabled = false;
             #region Fly-B相机__hide()
             CameraSelectionDialog camSlnDlg = new CameraSelectionDialog();
             bool retVal = camSlnDlg.ShowModal();
@@ -467,14 +469,11 @@ namespace SimpleImageDisplaySample
         //弹出定标的对话框   
         private void toolStripMenuItem1_Click_A(object sender, EventArgs e)
         {
+            timer2.Enabled = true;
             //标定框出来
             Calib_A cab = new Calib_A();
             cab.Show();
 
-            //TODO:测试一下
-            float a = 536.874F;
-            //int b = 12;
-            TestSendModBus(a);
         }
 
         private void toolStripMenuItem_C_Click(object sender, EventArgs e)
@@ -503,7 +502,7 @@ namespace SimpleImageDisplaySample
             // enable Force IP
             myFactory.EnableAutoForceIP = true;
             // Search for any new cameras using Filter Driver
-            //myFactory.UpdateCameraList(Jai_FactoryDotNET.CFactory.EDriverType.FilterDriver);
+            myFactory.UpdateCameraList(Jai_FactoryDotNET.CFactory.EDriverType.FilterDriver);
 
             if (myFactory.CameraList.Count > 0)
             {
@@ -538,6 +537,7 @@ namespace SimpleImageDisplaySample
             }
             if (myFactory.CameraList[1] != null)
             {
+
                 myFactory.CameraList[1].StartImageAcquisition(true, 5, pictureBox_C.Handle);
                //myFactory.CameraList[1].SaveNextFrame(".\\saveimgC_C" + ".bmp");
 
@@ -547,48 +547,48 @@ namespace SimpleImageDisplaySample
             StopButton.Enabled = true;
             SearchButton.Enabled = true;
             
-            while(true)
-            {
+            //while(true)
+            //{
                
-                myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
-                myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
+            //    myFactory.CameraList[0].SaveNextFrame(ImagePath_A);
+            //    myFactory.CameraList[1].SaveNextFrame(ImagePath_C);
 
-                ImageProcess_A(ImagePath_A);
-                SendDataToModBus(public_X_A, public_X_A);
+            //    ImageProcess_A(ImagePath_A);
+            //    SendDataToModBus(public_X_A, public_X_A);
 
-                ImageProcess_B(ImagePath_B);
-                if (Flag_B != 0)
-                {
-                    if(Flag_B == 1)
-                    {
-                        //chang;
-                        ImageProcess_C(ImagePath_C);
-                        SendDataToModBus(public_X_C, public_Y_C);
-                    }
-                    else if(Flag_B ==2)
-                    {
-                        //zheng;
-                        ImageProcess_C(ImagePath_C);
-                        SendDataToModBus(public_X_C, public_Y_C);
-                    }
-                    else if(Flag_B ==3)
-                    {
-                        //yuan;
-                        ImageProcess_C(ImagePath_C);
-                        SendDataToModBus(public_X_C, public_Y_C);
-                    }
-                }
-                else 
-                { 
-                    //wait();
-                    continue;
-                }
+            //    ImageProcess_B(ImagePath_B);
+            //    if (Flag_B != 0)
+            //    {
+            //        if(Flag_B == 1)
+            //        {
+            //            //chang;
+            //            ImageProcess_C(ImagePath_C);
+            //            SendDataToModBus(public_X_C, public_Y_C);
+            //        }
+            //        else if(Flag_B ==2)
+            //        {
+            //            //zheng;
+            //            ImageProcess_C(ImagePath_C);
+            //            SendDataToModBus(public_X_C, public_Y_C);
+            //        }
+            //        else if(Flag_B ==3)
+            //        {
+            //            //yuan;
+            //            ImageProcess_C(ImagePath_C);
+            //            SendDataToModBus(public_X_C, public_Y_C);
+            //        }
+            //    }
+            //    else 
+            //    { 
+            //        //wait();
+            //        continue;
+            //    }
                                            
                 //TODO:Flag_B标志位表示B相机是否检测到了物体的形状，
                 //为1则表示检测到了长方形,
                 //2则表示检测到了正方形,
                 //3则表示检测到了圆形.
-            }
+            //}
         }
         private void StopButton_Click(object sender, EventArgs e)
         {
@@ -1141,26 +1141,33 @@ namespace SimpleImageDisplaySample
 
         
         //TODO:测试代码=》向Modbus传值，接收值
-        private void TestSendModBus(float x)
+        private void TestSendModBus(float WorldX,float WorldY)
         {
-            float WorldX = x;
-            Console.WriteLine("传值："+WorldX);
-            //int WorldY = y;
+            float x = (float)(WorldX);
+            float y = (float)(WorldY);
+            Console.WriteLine("传给modbus_x:" + x);
+            Console.WriteLine("传给modbus_y:" + y);
+            //
+            float m = (float)(0.011);
 
-            byte[] a = BitConverter.GetBytes(WorldX);
-
-            //byte[] b = BitConverter.GetBytes(WorldY);
-            byte[] SendData = new byte[a.Length];
-            Console.WriteLine("SendData.Length:"+SendData.Length);
-
-            a.CopyTo(SendData,0);
-            //b.CopyTo(SendData,a.Length);
-
-            this.Wrapper.Send(SendData);
+            byte[] a = BitConverter.GetBytes(x);
+            a = LittleEncodingFloat(a);
+            byte[] b = BitConverter.GetBytes(y);
+            b = LittleEncodingFloat(b);
+            byte[] c = BitConverter.GetBytes(m);
+            c = LittleEncodingFloat(c);
+            byte[] z = new byte[a.Length + b.Length + c.Length];
+            a.CopyTo(z, 0);
+            b.CopyTo(z, a.Length);
+            c.CopyTo(z, a.Length + b.Length);
+            //TODO:利用Modbus发送坐标
+            this.Wrapper.Send(z);
         }
         
 
-        /**********Modbus程序***********/
+        /* ****
+         * Modbus程序
+         * ****/
         #region 小端封装
         public static void ReverseBytes(byte[] bytes, int start, int len)
         {
@@ -1197,48 +1204,76 @@ namespace SimpleImageDisplaySample
         }
         #endregion
 
-        /****
+
+        /* ****
          * 机械爪的窗口通讯程序代码
          *（1）按键设置Baudrate等操作 
          *（2）做一个发送和接受串口信号的程序
          *（3）String 转 16进制的发送函数
-         * **/
-         //Instantiate SerialPort
+         * ****/
+        #region 串口通讯控制机械爪
+        //Instantiate SerialPort
         SerialPort sp = new SerialPort();
-        #region 0.Init
+
         //Define 4 Common Variable to transfer parameters between two winforms
         public static string strPortName = "";
         public static string strBaudRate = "";
         public static string strDataBits = "";
         public static string strStopBits = "";
-        #endregion
-        //以最大速度放开
-        private void btnReleaseMax_Click(object sender, EventArgs e)
+
+        //抓手释放函数
+        //Releasing==>以最大速度放开:1000
+        private int RS232_Releasing()
         {
-            //NEW:松开的速度（MAX = 1000）
+            txtShow_Recieved.Clear();
+            txtShow_Recieved.AppendText("Releasing");
+            txtShow_Recieved.ScrollToCaret();
+
             if (sp.IsOpen)
             {
-                timer1.Enabled = true;
+                Console.WriteLine("<<Release Sending>>");
                 //高低位要分出来
-                byte[] SSReleaseMax = new byte[] { 0xEB, 0x90, 0x01, 0x03, 0x11, 0xE8,0x03,0x00 };
-                sp.Write(SSReleaseMax, 0, SSReleaseMax.Length);
+                byte[] SSReleaseMax = new byte[] { 0xEB, 0x90, 0x01, 0x03, 0x11, 0xE8, 0x03, 0x00 };
 
+                sp.Write(SSReleaseMax, 0, SSReleaseMax.Length);
             }
-            else {
+            else
+            {
 
                 MessageBox.Show("sp is not open!");
             }
+            return 10;
+        }
+        
+        private int RS232_Grabing()
+        {
+            txtShow_Recieved.Clear();
+            txtShow_Recieved.AppendText("Grabing");
+            txtShow_Recieved.ScrollToCaret();
+
+            Console.WriteLine("<<Grabing Sending>>");
+            ChangeGrabArray(textSpeed.Text, textPower.Text);
+            return 11;
         }
 
-        //byte[] GrabArray = new byte[] { 0xEB, 0x90, 0x01, 0x05, 0x10, 0x00, 0x00, 0x00, 0x00 };
-        //设置夹爪的阈值和速度（默认是255，500）        
-        private void ChangeGrabArray(string Speed,string Power)
+        //Grabing==>设置夹爪的阈值和速度（默认是255，500）
+        private void btnGrabing_Click(object sender, EventArgs e)
+        {
+            txtShow_Recieved.Clear();
+            txtShow_Recieved.AppendText("Grabing");
+            txtShow_Recieved.ScrollToCaret();
+
+            Console.WriteLine("<<Grabing Sending>>");
+            ChangeGrabArray(textSpeed.Text, textPower.Text);
+        }      
+        private void ChangeGrabArray(string Speed, string Power)
         {
             if (btnOpenSerial.Text == "OpenSerial")
             {
                 MessageBox.Show("Set the SerialPort and open it!");
             }
-            else {
+            else
+            {
                 if (Power == "" && Speed == "")
                 {
                     GrabArray[5] = (byte)0x00;
@@ -1258,9 +1293,7 @@ namespace SimpleImageDisplaySample
 
                     //BitConverter.GetByte()=>[0]:low;[1]:high
                     GrabArray[8] = ByteADD[0];
-                    timer1.Enabled = true;
                     sp.Write(GrabArray, 0, GrabArray.Length);
-                    Console.WriteLine("=====SSeinding success!!!=====");
                 }
                 else if (Power == "")
                 {
@@ -1278,7 +1311,7 @@ namespace SimpleImageDisplaySample
                     GrabArray[7] = (byte)0x00;
                     GrabArray[8] = (byte)0x00;
                     //TODO:精华所在
-                    int IntSpeed= int.Parse(Speed);
+                    int IntSpeed = int.Parse(Speed);
                     byte[] ByteSpeed = BitConverter.GetBytes(IntSpeed);
                     if (IntSpeed < 1 || IntSpeed > 255)
                     {
@@ -1311,101 +1344,31 @@ namespace SimpleImageDisplaySample
                     GrabArray[8] = ByteADD[0];
                     timer1.Enabled = true;
                     sp.Write(GrabArray, 0, GrabArray.Length);
-
-                    Console.WriteLine("=====SSeinding success!!!=====");
-                }  
-            }
-            System.Threading.Thread.Sleep(50);//0.05秒
-        }
-
-        //0.发送数据，用于测试
-        private void btnSend_Test_Data_Click(object sender, EventArgs e)
-        {
-            ChangeGrabArray(textSpeed.Text,textPower.Text);
-           
-            //if (sp.IsOpen)
-            //{
-            //    try
-            //    {
-            //        timer1.Enabled = true;
-            //        //sp.Write(txtSend.Text); //Send the Data
-            //        //sp.Encoding = System.Text.Encoding.GetEncoding("utf-8");
-            //        //sp.Write(data,0,data.Length);
-            //        sp.Write(GrabArray, 0, GrabArray.Length);
-            //        System.Threading.Thread.Sleep(50);//0.05秒
-                   
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        MessageBox.Show("Error:" + ex.Message);
-            //    }
-            //}
-            //else
-            //{
-            //    MessageBox.Show("First Open the Serial Ports!!!!");
-            //}
-        }
- 
-         //byte[] => 16进制的string
-        public static string ToHexString ( byte[] bytes ) 
-
-        {
-            string hexString = string.Empty;
-
-            if ( bytes != null )
-
-            {                
-
-                StringBuilder strB = new StringBuilder ();
-
-                for ( int i = 0; i < bytes.Length; i++ )
-                {                    
-                    strB.Append ( bytes[i].ToString ( "X2" ) );                
                 }
-                Console.WriteLine("bytes:" + bytes.Length);
-                hexString = strB.ToString ();            
-
             }
-            return hexString;        
         }
 
-        //控制机械抓手的定时器
-        //3.设置了一个定时器用来实时返回串口信号
-        private void timer1_Tick(object sender, EventArgs e)
+        //Releasing==>以最大速度放开:1000
+        private void btnReleaseMax_Click(object sender, EventArgs e)
         {
+            txtShow_Recieved.Clear();
+            txtShow_Recieved.AppendText("Releasing");
+            txtShow_Recieved.ScrollToCaret();
 
-            byte[] readBuffer = new byte[7];
-
-            int IsRead = sp.Read(readBuffer, 0, 7);
-
-            //串口通讯超时问题
-            if (IsRead > 0)
+            if (sp.IsOpen)
             {
-                if (readBuffer[4] == 16)
-                {
-                    string recieveStr = ToHexString(readBuffer);
+                Console.WriteLine("<<Release Sending>>");
+                //高低位要分出来
+                byte[] SSReleaseMax = new byte[] { 0xEB, 0x90, 0x01, 0x03, 0x11, 0xE8, 0x03, 0x00 };
 
-                    txtShow_Recieved.Clear();
-                    txtShow_Recieved.AppendText(recieveStr.ToString() + "Grab!!!");
-                    txtShow_Recieved.ScrollToCaret();
-                }
-                else
-                {
-                    string recieveStr = ToHexString(readBuffer);
+                sp.Write(SSReleaseMax, 0, SSReleaseMax.Length);
+            }
+            else
+            {
 
-                    txtShow_Recieved.Clear();
-                    txtShow_Recieved.AppendText(recieveStr.ToString() + "Release!!!");
-                    txtShow_Recieved.ScrollToCaret();
-                }
+                MessageBox.Show("sp is not open!");
             }
-            else {
-                timer1.Enabled = true;           
-            }
-           
-            timer1.Enabled = false;
-            //sp.DiscardInBuffer();
         }
-        //1.设置串口
         private void btnSetPorts_Click(object sender, EventArgs e)
         {
             GrabArray[5] = (byte)0x00;
@@ -1423,10 +1386,10 @@ namespace SimpleImageDisplaySample
                 sp.BaudRate = int.Parse(strBaudRate);
                 sp.DataBits = int.Parse(strDataBits);
                 sp.StopBits = (StopBits)int.Parse(strStopBits);
-                sp.ReadTimeout =500;
+                sp.ReadTimeout =5000;
+               sp.WriteTimeout = 5000;
             }
         }
-        //2.打开串口开关==>接受从机械爪返回的值==>用于判断机械手反馈的信息
         private void btnOpenSerial_Click(object sender, EventArgs e)
         {
             if (btnOpenSerial.Text == "OpenSerial")
@@ -1438,7 +1401,8 @@ namespace SimpleImageDisplaySample
                         if (sp.IsOpen)
                         {
                             sp.Close();
-                            sp.Open();//open the serial port
+                            sp.Open();
+                            //open the serial port
                         }
                         else
                         {
@@ -1479,10 +1443,85 @@ namespace SimpleImageDisplaySample
                 this.toolStripStatusLabel1.Text = "";
             }
         }
+        #endregion
 
-    
-#region /*注释补充*/
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            float a = 536.874F;
+            float b = 111.22F;
+            //int b = 12;
+            TestSendModBus(a, b);
+        }
+
+        
+
+
+        #region /*注释补充*/
         /**************************************************/
+#region byte[] => 16进制的string
+
+        //public static string ToHexString ( byte[] bytes ) 
+        //{
+        //    string hexString = string.Empty;
+
+        //    if ( bytes != null )
+
+        //    {                
+        //        StringBuilder strB = new StringBuilder ();
+
+        //        for ( int i = 0; i < bytes.Length; i++ )
+        //        {                    
+        //            strB.Append ( bytes[i].ToString ( "X2" ) );                
+        //        }
+        //        Console.WriteLine("bytes:" + bytes.Length);
+        //        hexString = strB.ToString ();            
+
+        //    }
+        //    return hexString;        
+        //}
+#endregion
+
+#region timer1
+        //private void timer1_Tick(object sender, EventArgs e)
+        //{
+        //    Console.WriteLine("进入timer1!");
+        //    //sp.Write(SReadStatus, 0, SReadStatus.Length);
+
+        //    byte[] readBuffer = new byte[50];
+        //    ////Console.WriteLine("readBuffer.Length:{0}",readBuffer.Length);
+
+        //    g_IsRead = sp.Read(readBuffer, 0, 49);
+        //    Console.WriteLine("g_IsRead:{0}", g_IsRead);
+        //    //串口通讯超时问题
+        //    if (g_IsRead == 0)
+        //    {
+        //        timer1.Enabled = false;
+        //        timer1.Enabled = true;
+        //        Console.WriteLine("g_IsRead == 0");
+        //    }
+        //    else
+        //    {
+        //        if (readBuffer[4] == 16)
+        //        {
+        //            string recieveStr = ToHexString(readBuffer);
+
+        //            txtShow_Recieved.Clear();
+        //            txtShow_Recieved.AppendText(recieveStr.ToString() + "Grab!!!");
+        //            txtShow_Recieved.ScrollToCaret();
+        //        }
+        //        else
+        //        {
+        //            string recieveStr = ToHexString(readBuffer);
+
+        //            txtShow_Recieved.Clear();
+        //            txtShow_Recieved.AppendText(recieveStr.ToString() + "Release!!!");
+        //            txtShow_Recieved.ScrollToCaret();
+        //        }
+        //    }
+        //    timer1.Enabled = false;
+        //}
+#endregion  
+
 #region 注释--定时器来控制整个程序的图像处理
         //可能这里需要更换成定时器模式来完成
         /********线程控制-------main()-----图像处理*******/

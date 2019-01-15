@@ -99,7 +99,7 @@
     </Reference>
     <Reference Include="Jai_FactoryDotNET, Version=2.1.6.18621, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\..\..\..\Program Files\JAI\SDK\bin\Jai_FactoryDotNET.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\JAI\SDK\bin\Jai_FactoryDotNET.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
