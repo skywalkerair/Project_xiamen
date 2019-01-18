@@ -124,3 +124,87 @@ https://blog.csdn.net/andrewniu/article/details/72469023
 1. 论文完成到了第二章，准备定标实验
 2. 测试所写的代码
 3. 将机械手端的程序优化，不能让机械爪子撞到
+
+
+
+***20190116：***
+
+1. 测试Modbus的程序，接受和发送的数据是什么
+
+问题：为什么单个发送一个数据时收不到
+
+解决：（1）在ModBusTCPIPWrapper.cs文件中的public override void Send(byte[] data)函数中
+
+values.AddRange(ValueHelper.Instance.GetBytes((short)(***2***)));
+
+这里的2与机械臂中Modbus所要读取的寄存器有关，当读取的是DW时，寄存器需要是双数，
+
+所以当传给程序函数是两个值的时候,这里应该是***(short)4***
+
+（2）float 单精度浮点型是占4个字节
+
+（3）Modbus中 
+
+字 word、字节 byte、位bit
+
+1 word = 2 byte
+
+1 byte = 8 bit
+
+Dword 双字节 = 2 word = 4 byte= 32 bit
+
+（4）
+
+32位编译器：
+
+| int           | 4个字节 |
+| ------------- | ------- |
+| unsigned int  | 4个字节 |
+| float         | 4个字节 |
+| double        | 8个字节 |
+| long          | 4个字节 |
+| long long     | 8个字节 |
+| unsigned long | 4个字节 |
+
+64位编译器：
+
+| char  | 1字节 |
+| ----- | ----- |
+| float | 4字节 |
+|       |       |
+|       |       |
+|       |       |
+|       |       |
+|       |       |
+
+***20190117:***
+
+1. Send Modbus 的程序成功，还需要定标之后测试最后的坐标值，将float型
+
+***20190118:***
+
+1. Modbus双工通讯的程序完成了：
+
+   问题：得不到从机械手modbus写入的数据
+
+   解决：这里的设备地址要写对，0x02，这里我重新设置了一个ModbusID号来解决这个问题
+
+   ​	sendData.Add(0x02);
+   ​        //7:Unit Identifier:This field is used for intra-system routing purpose.
+
+***Modbus的总结：***
+
+1. ModbusID这个设备地址，需要设置成0x02
+
+2. 当发送Modbus数据时，
+
+   （1）将float类型的物体坐标X，Y==>Int32型数据
+
+   （2）Int32==>byte类型
+
+   ***（3） values.AddRange(ValueHelper.Instance.GetBytes((short)(4)));***
+
+   ***//如果是传一个X,则这里的GetBytes((short)2)两个寄存器，因为机器手端的DW需要双数的寄存器来存放数据***
+
+   （4）这里我在设置的是0x1000-0x1004传X，Y的值，0x1006传返回的Modbus的信号
+

@@ -1099,68 +1099,42 @@ namespace SimpleImageDisplaySample
             }
         }
         #endregion
-    
-        /***将世界坐标值传到机械手端*******/
-        private void SendDataToModBus(double WorldX,double WorldY)
+       
+        //接收Modbus返回的Flag的值，若为1则表示发送坐标值成功
+        private void RecieveFlagFromModbus()
         {
-            Int32 x = (Int32)(WorldX);
-            Int32 y = (Int32)(WorldY);
-            Console.WriteLine("传给modbus_x:" + x);
-            Console.WriteLine("传给modbus_y:" + y);
-            //
-            Int32 m = (Int32)(0.011);
+            byte[] FlagResult = this.Wrapper.Receive();
 
-            byte[] a = BitConverter.GetBytes(x);
-            a = LittleEncodingFloat(a);
-            byte[] b = BitConverter.GetBytes(y);
-            b = LittleEncodingFloat(b);
-            byte[] c = BitConverter.GetBytes(m);
-            c = LittleEncodingFloat(c);
-            byte[] z = new byte[a.Length + b.Length + c.Length];
-            a.CopyTo(z, 0);
-            b.CopyTo(z, a.Length);
-            c.CopyTo(z, a.Length + b.Length);
-            //TODO:利用Modbus发送坐标
-            this.Wrapper.Send(z);
-        }
-        
-        //TODO:这里需要测试一下机械手端的Modbus传过来什么值
-        //TODO：这里设置一个Flag,当读到Modbus返回的数据之后，更换我需要传递的值
-        //TODO:接收Modbus端的数据，并显示
-        private void TestRecieveModbus()
-        {
-            
-            byte[] NewRecieve = new byte[4];
-            NewRecieve = this.Wrapper.Receive();
-
-            for (int i = 0; i < NewRecieve.Length; i++)
+            if (FlagResult[1] == 1)
             {
-                Console.WriteLine("NewRecieve[{0}]:{1}", i, NewRecieve[i]);
+                MessageBox.Show("第一个图像坐标值传递成功！");
             }
+            for (int i = 0; i < FlagResult.Length; i++)
+            {
+                Console.WriteLine("NewResult{0}:{1}", i, FlagResult[i]);
+            }
+            if (FlagResult[1] == 12)
+            {
+                this.Wrapper.Dispose();
+            }
+
         }
 
-        
-        //TODO:测试代码=》向Modbus传值，接收值
-        private void TestSendModBus(float WorldX,float WorldY)
+         /***将世界坐标值传到机械手端*******/
+        private void SendXY2ModBus(float WorldX,float WorldY)
         {
-            float x = (float)(WorldX);
-            float y = (float)(WorldY);
-            Console.WriteLine("传给modbus_x:" + x);
-            Console.WriteLine("传给modbus_y:" + y);
-            //
-            float m = (float)(0.011);
+            WorldX = WorldX * 10000;
+            Int32 Int32WorldX = (Int32)WorldX;
+            WorldY = WorldY * 10000;
+            Int32 Int32WorldY = (Int32)WorldY;
 
-            byte[] a = BitConverter.GetBytes(x);
+            byte[] a = BitConverter.GetBytes(Int32WorldX);
             a = LittleEncodingFloat(a);
-            byte[] b = BitConverter.GetBytes(y);
+            byte[] b = BitConverter.GetBytes(Int32WorldY);
             b = LittleEncodingFloat(b);
-            byte[] c = BitConverter.GetBytes(m);
-            c = LittleEncodingFloat(c);
-            byte[] z = new byte[a.Length + b.Length + c.Length];
-            a.CopyTo(z, 0);
+            byte[] z = new byte[a.Length+b.Length];
+            a.CopyTo(z,0);
             b.CopyTo(z, a.Length);
-            c.CopyTo(z, a.Length + b.Length);
-            //TODO:利用Modbus发送坐标
             this.Wrapper.Send(z);
         }
         
@@ -1183,6 +1157,7 @@ namespace SimpleImageDisplaySample
         }
         public static byte[] LittleEncodingFloat(byte[] bytes)
         {
+
             ReverseBytes(bytes, 0, 2);
             ReverseBytes(bytes, 2, 2);
             // ReverseBytes(bytes, 4, 2);
@@ -1447,10 +1422,15 @@ namespace SimpleImageDisplaySample
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            float a = 536.874F;
-            float b = 111.22F;
+            float a = 22.2223F;
+            float b = 223.1111F;
+
+            
+            //float b = 111.22F;
             //int b = 12;
-            TestSendModBus(a, b);
+            SendXY2ModBus(a, b);
+
+            RecieveFlagFromModbus();
         }
 
         
@@ -1458,6 +1438,32 @@ namespace SimpleImageDisplaySample
 
         #region /*注释补充*/
         /**************************************************/
+#region /***将世界坐标值传到机械手端*******/
+        ////***将世界坐标值传到机械手端*******/
+        //private void SendDataToModBus(double WorldX,double WorldY)
+        //{
+        //    Int32 x = (Int32)(WorldX);
+        //    Int32 y = (Int32)(WorldY);
+        //    Console.WriteLine("传给modbus_x:" + x);
+        //    Console.WriteLine("传给modbus_y:" + y);
+        //    //
+        //    Int32 m = (Int32)(0.011);
+
+        //    byte[] a = BitConverter.GetBytes(x);
+        //    a = LittleEncodingFloat(a);
+        //    byte[] b = BitConverter.GetBytes(y);
+        //    b = LittleEncodingFloat(b);
+        //    byte[] c = BitConverter.GetBytes(m);
+        //    c = LittleEncodingFloat(c);
+        //    byte[] z = new byte[a.Length + b.Length + c.Length];
+        //    a.CopyTo(z, 0);
+        //    b.CopyTo(z, a.Length);
+        //    c.CopyTo(z, a.Length + b.Length);
+        //    //TODO:利用Modbus发送坐标
+        //    this.Wrapper.Send(z);
+        //}
+#endregion
+
 #region byte[] => 16进制的string
 
         //public static string ToHexString ( byte[] bytes ) 
