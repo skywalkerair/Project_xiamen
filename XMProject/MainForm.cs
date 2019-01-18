@@ -37,23 +37,36 @@ using FlyCapture2Managed.Gui;
 //分割字符串
 using System.Text.RegularExpressions;
 
+
 namespace SimpleImageDisplaySample
 {
     public partial class MainForm : Form,ILog,IDisposable
     {
         
         #region 声明全局变量
-        #region RS232初始化变量
+        #region /***Modbus 的返回值***/
+       
+        //static 定义的变量，可以直接从类这边点出来
+        public static int g_ModbusFlagResult = 0;
+
+        #endregion
+        
+        #region /***RS232初始化变量***/
         /*****  机械爪的初始化  ******/
         //读取夹爪的状态:可得到当前开口的大小，夹持力当前值和阈值；
-        byte[] SReadStatus = new byte[] { 0xEB, 0x90, 0x01, 0x01, 0x14,0x16 };
+        byte[] g_SReadStatus = new byte[] { 0xEB, 0x90, 0x01, 0x01, 0x14,0x16 };
         //对应的应答{0xEE,0x16,0x01,0x07,0x14,0xA0,0x0F,0x02,0x08,0x34,0x08,0x11}
         //设置夹爪的抓取数据
-        byte[] GrabArray = new byte[] { 0xEB, 0x90, 0x01, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00 };
+        byte[] g_GrabArray = new byte[] { 0xEB, 0x90, 0x01, 0x04, 0x10, 0x00, 0x00, 0x00, 0x00 };
         //0xEB,0x90,0x01,xxx,0x10,0x32(速度50),0x64(力控阈值100g),0x00,0xAB
+
+        
+
+
         #endregion
 
-        #region 三个相机捕捉到的图像路径
+        //TODO:这里测试一下jpg和bmp哪个图片大
+        #region /***三个相机捕捉到的图像路径***/
         string ImagePath_A = ".\\saveimg.bmp";
         string ImagePath_C = ".\\saveimgC.bmp";
        
@@ -61,7 +74,7 @@ namespace SimpleImageDisplaySample
         string ImagePath_B = ".\\saveimgB.bmp";
         #endregion
 
-        #region 区分长方形、正方形和圆形的世界坐标点在A相机和C相机
+        #region /***区分长方形、正方形和圆形的世界坐标点在A相机和C相机***/
         double world_X = 0;
         double world_Y = 0;
         double world_X_c = 0;
@@ -87,7 +100,7 @@ namespace SimpleImageDisplaySample
         double public_Y_C = 0;
         #endregion
 
-        #region /*设置区分长方形，正方形和圆形的标志位*/
+        #region /***设置区分长方形，正方形和圆形的标志位***/
         //定义一个Flag_A用来调整A相机查找长方形，正方形和圆形的顺序
         int Flag_A = 0;
 
@@ -101,13 +114,13 @@ namespace SimpleImageDisplaySample
 
         #endregion 
 
-        #region /*ini文件变量声明*/
+        #region /***ini文件变量声明***/
         //系统文件用来读取ini文件
         [DllImport("kernel32")]
         private static extern long GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
         #endregion
         
-        #region /*A&C相机定标变量声明*/
+        #region /***A&C相机定标变量声明***/
         //A相机--图像坐标与世界坐标初始化
         public static double fc1, fc2, cc1, cc2, R11, R12, R13, R21, R22, R23, T1, T2, T3, s;
 
@@ -120,7 +133,7 @@ namespace SimpleImageDisplaySample
 
         #endregion
         
-        #region /*Fly相机变量声明*/
+        #region /***Fly相机变量声明***/
         //相机的初始化程序
         private FlyCapture2Managed.Gui.CameraControlDialog m_camCtlDlg;
         private ManagedCameraBase m_camera = null;
@@ -133,7 +146,7 @@ namespace SimpleImageDisplaySample
         private BackgroundWorker m_grabThread;
         #endregion
         
-        #region /*JAI相机和图像处理变量声明*/
+        #region /***JAI相机和图像处理变量声明***/
         //JAI相机
         CFactory myFactory = new CFactory();
         //图像处理--圆
@@ -148,7 +161,7 @@ namespace SimpleImageDisplaySample
         //Jai_FactoryWrapper.EFactoryError error;
         #endregion
 
-        #region /*Modbus实例化*/
+        #region /***Modbus实例化***/
         private ModBusWrapper Wrapper = null;
         #endregion
         #endregion
@@ -156,7 +169,12 @@ namespace SimpleImageDisplaySample
         public MainForm ()
         {
             InitializeComponent(); //窗口的初始化：比如拖一些框
-            #region 初始化主窗口:三个相机和Modbus初始化 
+          
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            #region /***初始化主窗口:三个相机和Modbus初始化***/
             /*************Fly__init***************/
             #region /*Fly-B相机初始化*/
             m_rawImage = new ManagedImage();
@@ -166,7 +184,7 @@ namespace SimpleImageDisplaySample
             m_camCtlDlg = new CameraControlDialog();
             m_grabThreadExited = new AutoResetEvent(false);  //非终止
             #endregion
-           
+
             /*************JAI__init***************/
             #region /*JAI-A&C相机初始化*/
             Jai_FactoryWrapper.EFactoryError error = Jai_FactoryWrapper.EFactoryError.Success;
@@ -175,20 +193,19 @@ namespace SimpleImageDisplaySample
             error = myFactory.Open("");
             // Search for cameras and update all controls
             SearchButton_Click(null, null);
-            #endregion 
-            
+            #endregion
+
             /***********Modbus--TCP**************/
             #region /*Modbus初始化*/
             this.Wrapper = ModBusWrapper.CreateInstance(Protocol.TCPIP);
             this.Wrapper.Logger = this;
             #endregion
             #endregion     
-        }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
+
+
             timer2.Enabled = false;
-            #region Fly-B相机__hide()
+            #region /***Fly-B相机__hide()***/
             CameraSelectionDialog camSlnDlg = new CameraSelectionDialog();
             bool retVal = camSlnDlg.ShowModal();
             if (retVal)
@@ -248,7 +265,7 @@ namespace SimpleImageDisplaySample
             //TODO:Show()函数试一下什么效果
             Show();
             #endregion
-            #region A相机_定标参数的初始化
+            #region /***A相机_定标参数的初始化***/
             //加载标定参数
             StringBuilder str = new StringBuilder(100);
             //calib2.ini:表示的是A相机定标之后所保存的定标参数
@@ -295,7 +312,7 @@ namespace SimpleImageDisplaySample
             if (str.ToString() != "")
                 s = Convert.ToDouble(str.ToString());
             #endregion
-            #region C相机_定标参数的初始化
+            #region /***C相机_定标参数的初始化***/
             //加载标定参数
             StringBuilder str_c = new StringBuilder(100);
             GetPrivateProfileString("标定", "fc1", "", str_c, 100, Application.StartupPath + "/calib_C_C.ini");
@@ -341,17 +358,16 @@ namespace SimpleImageDisplaySample
             if (str_c.ToString() != "")
                 s_c = Convert.ToDouble(str_c.ToString());
             #endregion
-            #region 串口通讯的初始化，变成灰色
+            #region /***串口通讯的初始化，变成灰色***/
             groupBox2.Enabled = false;
             groupBox3.Enabled = false;
             #endregion
         }
 
         /**************FLY-B相机**************/
-        #region private void UpdateUI()
+        #region /***FlyCapture 相机刷新图像***/
         private void UpdateUI(object sender, ProgressChangedEventArgs e)
         {
-            //pictureBox_B.Image = m_processed_B_Image.bitmap;
 
             pictureBox_B.Image = m_processedImage.bitmap;
             //m_processedImage.Save(ImagePath_B);
@@ -1099,50 +1115,12 @@ namespace SimpleImageDisplaySample
             }
         }
         #endregion
-       
-        //接收Modbus返回的Flag的值，若为1则表示发送坐标值成功
-        private void RecieveFlagFromModbus()
-        {
-            byte[] FlagResult = this.Wrapper.Receive();
 
-            if (FlagResult[1] == 1)
-            {
-                MessageBox.Show("第一个图像坐标值传递成功！");
-            }
-            for (int i = 0; i < FlagResult.Length; i++)
-            {
-                Console.WriteLine("NewResult{0}:{1}", i, FlagResult[i]);
-            }
-            if (FlagResult[1] == 12)
-            {
-                this.Wrapper.Dispose();
-            }
-
-        }
-
-         /***将世界坐标值传到机械手端*******/
-        private void SendXY2ModBus(float WorldX,float WorldY)
-        {
-            WorldX = WorldX * 10000;
-            Int32 Int32WorldX = (Int32)WorldX;
-            WorldY = WorldY * 10000;
-            Int32 Int32WorldY = (Int32)WorldY;
-
-            byte[] a = BitConverter.GetBytes(Int32WorldX);
-            a = LittleEncodingFloat(a);
-            byte[] b = BitConverter.GetBytes(Int32WorldY);
-            b = LittleEncodingFloat(b);
-            byte[] z = new byte[a.Length+b.Length];
-            a.CopyTo(z,0);
-            b.CopyTo(z, a.Length);
-            this.Wrapper.Send(z);
-        }
-        
 
         /* ****
          * Modbus程序
          * ****/
-        #region 小端封装
+        #region /***小端封装***/
         public static void ReverseBytes(byte[] bytes, int start, int len)
         {
             int end = start + len - 1;
@@ -1164,7 +1142,7 @@ namespace SimpleImageDisplaySample
             return bytes;
         }
         #endregion
-        #region ILog 成员
+        #region /***ILog 成员***/
         public void Write(string log)
         {
             this.tbxHistory.AppendText(log + Environment.NewLine);
@@ -1172,13 +1150,38 @@ namespace SimpleImageDisplaySample
             this.tbxHistory.ScrollToCaret();
         }
         #endregion
-        #region 释放Modbus资源
+        #region /***释放Modbus资源***/
         private void TestModBus_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.Wrapper.Dispose();
         }
         #endregion
 
+        #region /***接收来自Modbus端值：若为1则表示发送坐标值成功***/
+        private int RecieveFlagFromModbus()
+        {
+            byte[] FlagResult = this.Wrapper.Receive();
+            return FlagResult[1];
+        }
+        #endregion
+        #region /***将世界坐标值传到机械手端***/
+        private void SendXY2ModBus(float WorldX, float WorldY)
+        {
+            WorldX = WorldX * 10000;
+            Int32 Int32WorldX = (Int32)WorldX;
+            WorldY = WorldY * 10000;
+            Int32 Int32WorldY = (Int32)WorldY;
+
+            byte[] a = BitConverter.GetBytes(Int32WorldX);
+            a = LittleEncodingFloat(a);
+            byte[] b = BitConverter.GetBytes(Int32WorldY);
+            b = LittleEncodingFloat(b);
+            byte[] z = new byte[a.Length + b.Length];
+            a.CopyTo(z, 0);
+            b.CopyTo(z, a.Length);
+            this.Wrapper.Send(z);
+        }
+        #endregion
 
         /* ****
          * 机械爪的窗口通讯程序代码
@@ -1186,7 +1189,7 @@ namespace SimpleImageDisplaySample
          *（2）做一个发送和接受串口信号的程序
          *（3）String 转 16进制的发送函数
          * ****/
-        #region 串口通讯控制机械爪
+        #region /***串口通讯控制机械爪***/
         //Instantiate SerialPort
         SerialPort sp = new SerialPort();
 
@@ -1196,8 +1199,7 @@ namespace SimpleImageDisplaySample
         public static string strDataBits = "";
         public static string strStopBits = "";
 
-        //抓手释放函数
-        //Releasing==>以最大速度放开:1000
+        //抓手最大速度释放，成功返回11
         private int RS232_Releasing()
         {
             txtShow_Recieved.Clear();
@@ -1217,9 +1219,9 @@ namespace SimpleImageDisplaySample
 
                 MessageBox.Show("sp is not open!");
             }
-            return 10;
+            return 11;
         }
-        
+        //抓手最大速度抓取，成功返回10
         private int RS232_Grabing()
         {
             txtShow_Recieved.Clear();
@@ -1228,7 +1230,7 @@ namespace SimpleImageDisplaySample
 
             Console.WriteLine("<<Grabing Sending>>");
             ChangeGrabArray(textSpeed.Text, textPower.Text);
-            return 11;
+            return 10;
         }
 
         //Grabing==>设置夹爪的阈值和速度（默认是255，500）
@@ -1251,24 +1253,24 @@ namespace SimpleImageDisplaySample
             {
                 if (Power == "" && Speed == "")
                 {
-                    GrabArray[5] = (byte)0x00;
-                    GrabArray[6] = (byte)0x00;
-                    GrabArray[7] = (byte)0x00;
-                    GrabArray[8] = (byte)0x00;
-                    GrabArray[5] = (byte)0xFF;
-                    GrabArray[6] = (byte)0xF4;
-                    GrabArray[7] = (byte)0x01;
+                    g_GrabArray[5] = (byte)0x00;
+                    g_GrabArray[6] = (byte)0x00;
+                    g_GrabArray[7] = (byte)0x00;
+                    g_GrabArray[8] = (byte)0x00;
+                    g_GrabArray[5] = (byte)0xFF;
+                    g_GrabArray[6] = (byte)0xF4;
+                    g_GrabArray[7] = (byte)0x01;
 
                     int ADD = 0;
-                    for (int i = 2; i < GrabArray.Length - 1; i++)
+                    for (int i = 2; i < g_GrabArray.Length - 1; i++)
                     {
-                        ADD += GrabArray[i];
+                        ADD += g_GrabArray[i];
                     }
                     byte[] ByteADD = BitConverter.GetBytes(ADD);
 
                     //BitConverter.GetByte()=>[0]:low;[1]:high
-                    GrabArray[8] = ByteADD[0];
-                    sp.Write(GrabArray, 0, GrabArray.Length);
+                    g_GrabArray[8] = ByteADD[0];
+                    sp.Write(g_GrabArray, 0, g_GrabArray.Length);
                 }
                 else if (Power == "")
                 {
@@ -1281,10 +1283,10 @@ namespace SimpleImageDisplaySample
 
                 else
                 {
-                    GrabArray[5] = (byte)0x00;
-                    GrabArray[6] = (byte)0x00;
-                    GrabArray[7] = (byte)0x00;
-                    GrabArray[8] = (byte)0x00;
+                    g_GrabArray[5] = (byte)0x00;
+                    g_GrabArray[6] = (byte)0x00;
+                    g_GrabArray[7] = (byte)0x00;
+                    g_GrabArray[8] = (byte)0x00;
                     //TODO:精华所在
                     int IntSpeed = int.Parse(Speed);
                     byte[] ByteSpeed = BitConverter.GetBytes(IntSpeed);
@@ -1295,7 +1297,7 @@ namespace SimpleImageDisplaySample
                     else
                     {
                         //high&low transfer
-                        GrabArray[5] = ByteSpeed[0];//low
+                        g_GrabArray[5] = ByteSpeed[0];//low
                     }
 
                     int IntPower = int.Parse(Power);
@@ -1306,19 +1308,19 @@ namespace SimpleImageDisplaySample
                     }
                     else
                     {
-                        GrabArray[6] = ByteSpeed[0];
-                        GrabArray[7] = ByteSpeed[1];
+                        g_GrabArray[6] = ByteSpeed[0];
+                        g_GrabArray[7] = ByteSpeed[1];
                     }
                     //TODO:Notice
                     int ADD = 0;
-                    for (int i = 2; i < GrabArray.Length - 1; i++)
+                    for (int i = 2; i < g_GrabArray.Length - 1; i++)
                     {
-                        ADD += GrabArray[i];
+                        ADD += g_GrabArray[i];
                     }
                     byte[] ByteADD = BitConverter.GetBytes(ADD);
-                    GrabArray[8] = ByteADD[0];
+                    g_GrabArray[8] = ByteADD[0];
                     timer1.Enabled = true;
-                    sp.Write(GrabArray, 0, GrabArray.Length);
+                    sp.Write(g_GrabArray, 0, g_GrabArray.Length);
                 }
             }
         }
@@ -1346,10 +1348,10 @@ namespace SimpleImageDisplaySample
         }
         private void btnSetPorts_Click(object sender, EventArgs e)
         {
-            GrabArray[5] = (byte)0x00;
-            GrabArray[6] = (byte)0x00;
-            GrabArray[7] = (byte)0x00;
-            GrabArray[8] = (byte)0x00; 
+            g_GrabArray[5] = (byte)0x00;
+            g_GrabArray[6] = (byte)0x00;
+            g_GrabArray[7] = (byte)0x00;
+            g_GrabArray[8] = (byte)0x00; 
             //Main WinForm
             sp.Close();
             //Call the new SetPorts Winform
@@ -1430,7 +1432,9 @@ namespace SimpleImageDisplaySample
             //int b = 12;
             SendXY2ModBus(a, b);
 
-            RecieveFlagFromModbus();
+
+            g_ModbusFlagResult = RecieveFlagFromModbus();
+            Console.WriteLine("ModbusFlagResult:{0}", g_ModbusFlagResult);
         }
 
         
@@ -1491,7 +1495,7 @@ namespace SimpleImageDisplaySample
         //private void timer1_Tick(object sender, EventArgs e)
         //{
         //    Console.WriteLine("进入timer1!");
-        //    //sp.Write(SReadStatus, 0, SReadStatus.Length);
+        //    //sp.Write(g_SReadStatus, 0, g_g_SReadStatus.Length);
 
         //    byte[] readBuffer = new byte[50];
         //    ////Console.WriteLine("readBuffer.Length:{0}",readBuffer.Length);
