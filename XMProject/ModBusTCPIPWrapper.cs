@@ -106,10 +106,10 @@ namespace SimpleImageDisplaySample
         public override void Send(byte[] data)
         {
             //[0]:填充0，清掉剩余的寄存器
-            if (data.Length < 4)
+            if (data.Length < 8)
             {
                 var input = data;
-                data = new Byte[4];
+                data = new Byte[8];
                 Array.Copy(input, data, input.Length);
             }
          
@@ -135,7 +135,7 @@ namespace SimpleImageDisplaySample
             values.AddRange(ValueHelper.Instance.GetBytes(StartingAddress));
             //9~10.起始地址
 
-            values.AddRange(ValueHelper.Instance.GetBytes((short)(4)));
+            values.AddRange(ValueHelper.Instance.GetBytes((short)(8)));
             //11~12.寄存器数量
             
             values.Add((byte)data.Length);

@@ -30,7 +30,6 @@ namespace SimpleImageDisplaySample
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.Button btnSetPorts;
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.camListBox = new System.Windows.Forms.ListBox();
             this.SearchButton = new System.Windows.Forms.Button();
@@ -39,12 +38,7 @@ namespace SimpleImageDisplaySample
             this.pictureBox_A = new System.Windows.Forms.PictureBox();
             this.pictureBox_B = new System.Windows.Forms.PictureBox();
             this.pictureBox_C = new System.Windows.Forms.PictureBox();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripButtonStart = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonStop = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonCameraControl = new System.Windows.Forms.ToolStripButton();
-            this.toolStripMenuItem1 = new System.Windows.Forms.Button();
+            this.btnCalib_A = new System.Windows.Forms.Button();
             this.tbxHistory = new System.Windows.Forms.RichTextBox();
             this.pictureBox_A_processed = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -52,7 +46,7 @@ namespace SimpleImageDisplaySample
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.toolStripMenuItem_C = new System.Windows.Forms.Button();
+            this.btnCalib_C = new System.Windows.Forms.Button();
             this.pictureBox_C_processed = new System.Windows.Forms.PictureBox();
             this.label5 = new System.Windows.Forms.Label();
             this.pictureBox_B_Processing = new System.Windows.Forms.PictureBox();
@@ -66,6 +60,7 @@ namespace SimpleImageDisplaySample
             this.toolStripStatusLabel5 = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnOpenSerial = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btnGrabing = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.btnReleasing = new System.Windows.Forms.Button();
@@ -74,13 +69,12 @@ namespace SimpleImageDisplaySample
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.txtShow_Recieved = new System.Windows.Forms.TextBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.btnGrabing = new System.Windows.Forms.Button();
+            this.btnImageProcess = new System.Windows.Forms.Button();
             btnSetPorts = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C)).BeginInit();
-            this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B_Processing)).BeginInit();
@@ -142,7 +136,7 @@ namespace SimpleImageDisplaySample
             this.StartButton.Name = "StartButton";
             this.StartButton.Size = new System.Drawing.Size(100, 30);
             this.StartButton.TabIndex = 2;
-            this.StartButton.Text = "Open_AC";
+            this.StartButton.Text = "OpenCamera";
             this.StartButton.UseVisualStyleBackColor = true;
             this.StartButton.Click += new System.EventHandler(this.StartButton_Click);
             // 
@@ -154,7 +148,7 @@ namespace SimpleImageDisplaySample
             this.StopButton.Name = "StopButton";
             this.StopButton.Size = new System.Drawing.Size(100, 30);
             this.StopButton.TabIndex = 3;
-            this.StopButton.Text = "Stop_A_C";
+            this.StopButton.Text = "StopCamera";
             this.StopButton.UseVisualStyleBackColor = true;
             this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
             // 
@@ -188,74 +182,17 @@ namespace SimpleImageDisplaySample
             this.pictureBox_C.TabIndex = 11;
             this.pictureBox_C.TabStop = false;
             // 
-            // toolStrip1
+            // btnCalib_A
             // 
-            this.toolStrip1.AutoSize = false;
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.None;
-            this.toolStrip1.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripLabel1,
-            this.toolStripButtonStart,
-            this.toolStripButtonStop,
-            this.toolStripButtonCameraControl});
-            this.toolStrip1.Location = new System.Drawing.Point(1137, 140);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(227, 43);
-            this.toolStrip1.Stretch = true;
-            this.toolStrip1.TabIndex = 12;
-            this.toolStrip1.Text = "toolStrip1";
-            // 
-            // toolStripLabel1
-            // 
-            this.toolStripLabel1.AutoSize = false;
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(69, 27);
-            this.toolStripLabel1.Text = "Open_B";
-            // 
-            // toolStripButtonStart
-            // 
-            this.toolStripButtonStart.AutoSize = false;
-            this.toolStripButtonStart.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonStart.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonStart.Image")));
-            this.toolStripButtonStart.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonStart.Name = "toolStripButtonStart";
-            this.toolStripButtonStart.Size = new System.Drawing.Size(30, 32);
-            this.toolStripButtonStart.Text = "Play";
-            this.toolStripButtonStart.Click += new System.EventHandler(this.toolStripButtonStart_Click);
-            // 
-            // toolStripButtonStop
-            // 
-            this.toolStripButtonStop.AutoSize = false;
-            this.toolStripButtonStop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonStop.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonStop.Image")));
-            this.toolStripButtonStop.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonStop.Name = "toolStripButtonStop";
-            this.toolStripButtonStop.Size = new System.Drawing.Size(30, 32);
-            this.toolStripButtonStop.Text = "Stop";
-            this.toolStripButtonStop.Click += new System.EventHandler(this.toolStripButtonStop_Click);
-            // 
-            // toolStripButtonCameraControl
-            // 
-            this.toolStripButtonCameraControl.AutoSize = false;
-            this.toolStripButtonCameraControl.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonCameraControl.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCameraControl.Image")));
-            this.toolStripButtonCameraControl.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonCameraControl.Name = "toolStripButtonCameraControl";
-            this.toolStripButtonCameraControl.Size = new System.Drawing.Size(30, 32);
-            this.toolStripButtonCameraControl.Text = "Controls";
-            this.toolStripButtonCameraControl.Click += new System.EventHandler(this.toolStripButtonCameraControl_Click);
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.toolStripMenuItem1.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.toolStripMenuItem1.Location = new System.Drawing.Point(1139, 186);
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(100, 30);
-            this.toolStripMenuItem1.TabIndex = 13;
-            this.toolStripMenuItem1.Text = "Calib_A";
-            this.toolStripMenuItem1.UseVisualStyleBackColor = true;
-            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click_A);
+            this.btnCalib_A.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btnCalib_A.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnCalib_A.Location = new System.Drawing.Point(1139, 186);
+            this.btnCalib_A.Name = "btnCalib_A";
+            this.btnCalib_A.Size = new System.Drawing.Size(100, 30);
+            this.btnCalib_A.TabIndex = 13;
+            this.btnCalib_A.Text = "Calib_A";
+            this.btnCalib_A.UseVisualStyleBackColor = true;
+            this.btnCalib_A.Click += new System.EventHandler(this.btnCalib_A_Click);
             // 
             // tbxHistory
             // 
@@ -321,16 +258,16 @@ namespace SimpleImageDisplaySample
             this.timer2.Interval = 1000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
-            // toolStripMenuItem_C
+            // btnCalib_C
             // 
-            this.toolStripMenuItem_C.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.toolStripMenuItem_C.Location = new System.Drawing.Point(1264, 186);
-            this.toolStripMenuItem_C.Name = "toolStripMenuItem_C";
-            this.toolStripMenuItem_C.Size = new System.Drawing.Size(100, 30);
-            this.toolStripMenuItem_C.TabIndex = 31;
-            this.toolStripMenuItem_C.Text = "Calib_C";
-            this.toolStripMenuItem_C.UseVisualStyleBackColor = true;
-            this.toolStripMenuItem_C.Click += new System.EventHandler(this.toolStripMenuItem_C_Click);
+            this.btnCalib_C.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnCalib_C.Location = new System.Drawing.Point(1264, 186);
+            this.btnCalib_C.Name = "btnCalib_C";
+            this.btnCalib_C.Size = new System.Drawing.Size(100, 30);
+            this.btnCalib_C.TabIndex = 31;
+            this.btnCalib_C.Text = "Calib_C";
+            this.btnCalib_C.UseVisualStyleBackColor = true;
+            this.btnCalib_C.Click += new System.EventHandler(this.btnCalib_C_Click);
             // 
             // pictureBox_C_processed
             // 
@@ -390,9 +327,9 @@ namespace SimpleImageDisplaySample
             this.toolStripStatusLabel3,
             this.toolStripStatusLabel4,
             this.toolStripStatusLabel5});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 813);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 733);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1376, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1370, 22);
             this.statusStrip1.TabIndex = 38;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -453,6 +390,17 @@ namespace SimpleImageDisplaySample
             this.groupBox2.TabIndex = 40;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Serial_Sending";
+            // 
+            // btnGrabing
+            // 
+            this.btnGrabing.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnGrabing.Location = new System.Drawing.Point(6, 104);
+            this.btnGrabing.Name = "btnGrabing";
+            this.btnGrabing.Size = new System.Drawing.Size(100, 30);
+            this.btnGrabing.TabIndex = 42;
+            this.btnGrabing.Text = "Grabing";
+            this.btnGrabing.UseVisualStyleBackColor = true;
+            this.btnGrabing.Click += new System.EventHandler(this.btnGrabing_Click);
             // 
             // label9
             // 
@@ -522,22 +470,24 @@ namespace SimpleImageDisplaySample
             // 
             this.timer1.Interval = 1000;
             // 
-            // btnGrabing
+            // btnImageProcess
             // 
-            this.btnGrabing.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnGrabing.Location = new System.Drawing.Point(6, 104);
-            this.btnGrabing.Name = "btnGrabing";
-            this.btnGrabing.Size = new System.Drawing.Size(100, 30);
-            this.btnGrabing.TabIndex = 42;
-            this.btnGrabing.Text = "Grabing";
-            this.btnGrabing.UseVisualStyleBackColor = true;
-            this.btnGrabing.Click += new System.EventHandler(this.btnGrabing_Click);
+            this.btnImageProcess.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btnImageProcess.Font = new System.Drawing.Font("楷体", 10.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnImageProcess.Location = new System.Drawing.Point(1204, 143);
+            this.btnImageProcess.Name = "btnImageProcess";
+            this.btnImageProcess.Size = new System.Drawing.Size(100, 30);
+            this.btnImageProcess.TabIndex = 42;
+            this.btnImageProcess.Text = "ImageProcess";
+            this.btnImageProcess.UseVisualStyleBackColor = false;
+            this.btnImageProcess.Click += new System.EventHandler(this.btnImageProcess_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1376, 835);
+            this.ClientSize = new System.Drawing.Size(1370, 755);
+            this.Controls.Add(this.btnImageProcess);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.btnOpenSerial);
@@ -548,21 +498,21 @@ namespace SimpleImageDisplaySample
             this.Controls.Add(this.pictureBox_B_Processing);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.pictureBox_C_processed);
-            this.Controls.Add(this.toolStripMenuItem_C);
+            this.Controls.Add(this.btnCalib_C);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.tbxHistory);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox_A_processed);
-            this.Controls.Add(this.toolStripMenuItem1);
-            this.Controls.Add(this.toolStrip1);
+            this.Controls.Add(this.btnCalib_A);
             this.Controls.Add(this.pictureBox_C);
             this.Controls.Add(this.pictureBox_B);
             this.Controls.Add(this.pictureBox_A);
             this.Controls.Add(this.StopButton);
             this.Controls.Add(this.StartButton);
             this.Controls.Add(this.groupBox1);
+            this.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Name = "MainForm";
             this.Text = "XMProject";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TestModBus_FormClosing);
@@ -571,8 +521,6 @@ namespace SimpleImageDisplaySample
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C)).EndInit();
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_A_processed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_C_processed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_B_Processing)).EndInit();
@@ -599,12 +547,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.PictureBox pictureBox_B;
         //
         private System.Windows.Forms.PictureBox pictureBox_C;
-        private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
-        private System.Windows.Forms.ToolStripButton toolStripButtonStart;
-        private System.Windows.Forms.ToolStripButton toolStripButtonStop;
-        private System.Windows.Forms.ToolStripButton toolStripButtonCameraControl;
-        private System.Windows.Forms.Button toolStripMenuItem1;
+        private System.Windows.Forms.Button btnCalib_A;
         private System.Windows.Forms.RichTextBox tbxHistory;
         private System.Windows.Forms.PictureBox pictureBox_A_processed;
         private System.Windows.Forms.Label label1;
@@ -612,7 +555,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Button toolStripMenuItem_C;
+        private System.Windows.Forms.Button btnCalib_C;
         private System.Windows.Forms.PictureBox pictureBox_C_processed;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.PictureBox pictureBox_B_Processing;
@@ -635,6 +578,7 @@ namespace SimpleImageDisplaySample
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button btnGrabing;
+        private System.Windows.Forms.Button btnImageProcess;
        
     }
 }
