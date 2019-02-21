@@ -1,3 +1,5 @@
+
+
 ## 课题进展
 
 **20181226：**
@@ -207,4 +209,661 @@ Dword 双字节 = 2 word = 4 byte= 32 bit
    ***//如果是传一个X,则这里的GetBytes((short)2)两个寄存器，因为机器手端的DW需要双数的寄存器来存放数据***
 
    （4）这里我在设置的是0x1000-0x1004传X，Y的值，0x1006传返回的Modbus的信号
+
+
+
+
+
+
+
+***20190218：项目总框架的设定规范***
+
+A：
+
+**抓取：：取最左边**
+
+1. 一个物体
+
+2. 两个物体（一圆一矩形，两个矩形）
+
+3. 三个物体（）
+
+4. 什么都没有，11
+
+
+/* ***
+   * 返回10：A相机传值给modbus成功;
+        返回11：A相机中既没有圆形也没有矩形
+
+        ***/
+
+**解决方案：**
+
+最右边的物体先抓；比较中心点x轴的坐标值，取最小的那个坐标值。
+
+
+
+B：
+
+/* ***
+   * 识别出形状和角度
+
+     ***/
+
+***存在的问题：***
+
+1. 在B相机的矩形长短边的判断上需要根据实际的长度再判断
+2. 查看在B相机中矩形和圆形的面积和边长，设置长矩形还是短矩形
+
+C:
+
+返回20 表示成功；返回21 表示失败
+
+
+
+
+
+Modbus：
+
+接受端，如果收到5则表示需要抓取物件；如果为4则表示需要松开物件
+
+***Notice：***
+
+1. 更改了SendXY2ModBus（double WorldX, double WorldY, double Flag, double WorldZ = 0）
+
+   可能需要增加寄存器来重新读值
+
+***20190220：***
+
+1. 完成了三个相机的逻辑编写
+
+2. 完成了每个相机的三种情况和C相机的角度
+
+3. 需要实践再次测量
+
+
+backlog:
+
+1. 测试C相机的长矩形和短矩形
+2. 测出偏转角度
+3. 将机械手端的程序流程写完
+
+***20190220：***
+
+**1. 测试A相机中的长短矩形和图像处理(Done)**
+
+将很近的矩形去掉：
+
+~~~C#
+ //Console.WriteLine("Before boxList.size:"+boxList.Count());
+            //将重复的很近的矩形去掉
+            for (int q = 0; q<boxList.Count()-1;q++ )
+            {
+                //先看质点X的距离
+                if (Math.Abs(boxList[q].center.X - boxList[q + 1].center.X) <= 30)
+                {
+                    boxList.RemoveAt(q);
+                }
+                else {
+                    continue;
+                }
+                //Console.WriteLine("boxList[{0}].Area:{1}",q,boxList[q].MinAreaRect().Size);
+            }
+           // Console.WriteLine("After Before boxList.size:" + boxList.Count());
+~~~
+
+2.situation 4：既有圆形也有矩形，这里需要判断矩形的个数和圆形的个数
+
+~~~C#
+
+            #region Situation 4 :既有圆形又有矩形
+            else
+            {
+                Console.WriteLine("++++++++In Camera A,Situation 4!++++++");
+                #region 判断矩形中最左边的和圆形中最左边的
+                double tmpMin = boxList[0].center.X;//记录第一个矩形X为初始值
+                int tmpRecordI = 0;//记录I的值，最小矩形的序号
+                for (int RectBig1 = 0; RectBig1 < boxList.Count(); RectBig1++)
+                {
+                    //找最小值
+                    if (boxList[RectBig1].center.X <= tmpMin)
+                    {
+                        tmpMin = boxList[RectBig1].center.X;
+                        tmpRecordI = RectBig1;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                double tmpMinc = circles[0].Center.X;//记录第一个圆形X为初始值
+                int tmpRecordIc = 0;//记录I的值，最小圆形的序号
+                for (int RectBig2 = 0; RectBig2 < circles.Count(); RectBig2++)
+                {
+                    //找最小值
+                    if (circles[RectBig2].Center.X <= tmpMin)
+                    {
+                        tmpMinc = circles[RectBig2].Center.X;
+                        tmpRecordIc = RectBig2;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                if (boxList[tmpRecordI].center.X <= circles[tmpRecordIc].Center.X)
+                {
+                    //图像中x,y的坐标位置
+                    ARectangleX = (double)(boxList[tmpRecordI].center.X);
+                    ARectangleY = (double)(boxList[tmpRecordI].center.Y);
+                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                    Console.WriteLine("ARectangleX[1]:" + boxList[tmpRecordI].center.X);
+                    Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].center.Y);
+                    Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].angle);
+                    //rectangle_location
+                    double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                    g_AtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                    g_AtmpWRectY = (world_cor[1, 0] / s) * 1000;
+
+                    g_AWRectX = g_AtmpWRectX;
+                    g_AWRectY = g_AtmpWRectY;
+                    Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
+                    Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
+                    isARect = 1;
+                }
+                else
+                {
+                    //圆形在左
+                    ACircleX = (double)(circles[tmpRecordIc].Center.X);
+                    ACircleY = (double)(circles[tmpRecordIc].Center.Y);
+                    Console.WriteLine("圆形的重心：" + circles[tmpRecordIc].Center);
+                    //circle_location
+                    double[,] image_pix_circle = new double[3, 1] { { ACircleX }, { ACircleY }, { 1 } };
+
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix_circle, ref world_cor);
+
+                    g_AtmpWCircleX = (world_cor[0, 0] / s) * 1000;
+                    g_AtmpWCircleY = (world_cor[1, 0] / s) * 1000;
+
+                    g_AWCircleX = g_AtmpWCircleX;
+                    g_AWCircleY = g_AtmpWCircleY;
+                    Console.WriteLine("A相机中的圆");
+                    Console.WriteLine("g_AWCircleX:" + g_AWCircleX);
+                    Console.WriteLine("g_AWCircleY:" + g_AWCircleY);
+                    isACircle = 1;
+                }
+                #endregion
+            }    
+~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+~~~C#
+  #region 相机A的处理过程
+        /* ***
+         * 返回10：A相机传值给modbus成功;
+         * 返回11：A相机中既没有圆形也没有矩形
+         * ***/
+        private int ImageProcess_A(string ImagePath)
+        {
+            //矩形和圆形的中心点坐标
+            double ARectangleX = 0;
+            double ARectangleY = 0;
+
+            double ACircleX = 0;
+            double ACircleY = 0;
+
+            /*canny算子处理图像*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
+            Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+
+            Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
+
+            double cannyThreshold = 200.0;
+            double circleAccumulatorThreshold = 50.0;
+
+            #region Find circles
+            /*检测圆形*/
+            circles = MedianImage.HoughCircles(
+                new Gray(cannyThreshold),
+                new Gray(circleAccumulatorThreshold),
+                1.5, //Resolution of the accumulator used to detect centers of the circles
+                MedianImage.Width, //min distance 
+                20, //min radius
+                0 //max radius
+                )[0]; //Get the circles from the first channel
+            #endregion
+
+            #region Canny and edge detection
+            double cannyThresholdLinking = 50.0;
+            Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
+
+            #endregion
+
+            #region search rectangles
+            //存放矩形的形状
+            List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
+            // PointF[] GetVertices();
+            using (MemStorage storage1 = new MemStorage()) //allocate storage for contour approximation
+                for (
+                   Contour<Point> contours = cannyEdges.FindContours(
+                      Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
+                      Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
+                      storage1);
+                   contours != null;
+                   contours = contours.HNext)
+                {
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage1);//注意这里的The desired approximation accuracy为0.04
+
+                    if (currentContour.Area > 1000) //only consider contours with area greater than 4300
+                    {
+                        if (currentContour.Total == 4)  //The contour has 4 vertices.
+                        {
+                            #region determine if all the angles in the contour are within [80, 100] degree
+                            bool isRectangle = true;
+                            Point[] pts = currentContour.ToArray();
+                            LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
+
+                            for (int i = 0; i < edges.Length; i++)
+                            {
+                                double angle = Math.Abs(
+                                   edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
+                                if (angle < 80 || angle > 100)
+                                {
+                                    isRectangle = false;
+                                    break;
+                                }
+                            }
+                            #endregion
+                            if (isRectangle) boxList.Add(currentContour.GetMinAreaRect());
+                        }
+                    }
+                }
+            #endregion
+
+            #region draw rectangles and circles
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            //draw the rectangles           
+            Console.WriteLine("A相机中的矩形的个数：" + boxList.Count());
+
+            foreach (MCvBox2D box1 in boxList)
+            {
+                triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
+            }
+
+            //draw the circles
+            foreach (CircleF circle in circles)
+            {
+                AreaCircle = (Int32)(circle.Area);
+                if (AreaCircle <= 8000 && AreaCircle >= 3000)
+                {
+                    triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
+                }
+                else { continue; }
+            }
+            #endregion
+
+            /*显示结果，在A相机的图像中显示出来*/
+            pictureBox_A_processed.Image = triangleRectangleImage.ToBitmap();
+            //pictureBox_A_processed.Image = cannyEdges.ToBitmap();
+
+            double[,] a = new double[3, 3] { { fc1, 0, cc1 }, { 0, fc2, cc2 }, { 0, 0, 1 } };
+            double[,] b = new double[3, 3] { { R11, R21, T1 }, { R12, R22, T2 }, { R13, R23, T3 } };
+          
+            Console.WriteLine("A相机中的矩形的个数：" + boxList.Count());
+            #region 对A中形状数量的判断
+            #region Situation 1 ：A相机中既没有圆也没有矩形
+            if (boxList.Count() == 0 && (circles.Count() == 0 || (circles[0].Area >= 4600 || circles[0].Area <= 3000)))
+            {
+                Console.WriteLine("In Camera A,The Rectangle and the Circle are no found!");
+                return 11;
+            }
+            #endregion
+
+            #region Situation 2 :只有圆形
+            else if (boxList.Count() == 0)
+            {
+                /*输出圆的圆心*/
+                Console.WriteLine("圆形的个数：" + circles.Count());
+                if (circles.Count() == 0 || (circles[0].Area >= 4600 || circles[0].Area <= 3000))
+                {
+                    Console.WriteLine("In Camera A,The Rectangle and the Circle are no found!");
+                    return 11;
+                }
+                else 
+                {
+                    ACircleX = (double)(circles[0].Center.X);
+                    ACircleY = (double)(circles[0].Center.Y);
+                    Console.WriteLine("圆形的重心：" + circles[0].Center);
+                    //circle_location
+                    double[,] image_pix_circle = new double[3, 1] { { ACircleX }, { ACircleY }, { 1 } };
+
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix_circle, ref world_cor);
+
+                    world_X_circle = (world_cor[0, 0] / s) * 1000;
+                    world_Y_circle = (world_cor[1, 0] / s) * 1000;
+
+                    g_AWCircleX = world_X_circle;
+                    g_AWCircleY = world_Y_circle;
+                    Console.WriteLine("A相机中的圆");
+                    Console.WriteLine("g_AWCircleX:" + g_AWCircleX);
+                    Console.WriteLine("g_AWCircleY:" + g_AWCircleY);
+                }  
+            }
+            #endregion
+
+            #region Situation 3 :只有矩形
+            else if (circles.Count() == 0 || (circles[0].Area >= 4600 || circles[0].Area <= 3000))
+            {
+                /*
+                 * 如果圆不存在，则判断矩形，矩形的数量
+                 */
+                if (boxList.Count() == 0)
+                {
+                    Console.WriteLine("In Camera A,The Rectangle and the Circle are no found!");
+                    return 11;
+                }
+                else if (boxList.Count() == 1)
+                {
+                    //图像中x,y的坐标位置
+                    ARectangleX = (double)(boxList[0].center.X);
+                    ARectangleY = (double)(boxList[0].center.Y);
+                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                    Console.WriteLine("ARectangleX[0]:" + boxList[0].center.X);
+                    Console.WriteLine("ARectangleY[0]:" + boxList[0].center.Y);
+                    Console.WriteLine("ARectangleY[0]:" + boxList[0].angle);
+
+                    //rectangle_location
+                    double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                    Matrix.MatrixMultiply(a, b, ref c);
+                    Matrix.MatrixOpp(c, ref c_);
+                    Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                    world_X_c = (world_cor[0, 0] / s) * 1000;
+                    world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                    g_AWRectX = world_X_c;
+                    g_AWRectY = world_Y_c;
+                    Console.WriteLine("g_AWRectX[0]" + g_AWRectX);
+                    Console.WriteLine("g_AWRectY[0]" + g_AWRectY);
+                }
+                else
+                {
+                    //此时的矩形是两个,选择x轴坐标大的那一个
+                    if (boxList[0].center.X >= (boxList[1].center.X + 5))
+                    {
+                        //图像中x,y的坐标位置
+                        ARectangleX = (double)(boxList[0].center.X);
+                        ARectangleY = (double)(boxList[0].center.Y);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("ARectangleX[0]:" + boxList[0].center.X);
+                        Console.WriteLine("ARectangleY[0]:" + boxList[0].center.Y);
+                        Console.WriteLine("ARectangleY[0]:" + boxList[0].angle);
+
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                        world_X_c = (world_cor[0, 0] / s) * 1000;
+                        world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWRectX = world_X_c;
+                        g_AWRectY = world_Y_c;
+                        Console.WriteLine("g_AWRectX[0]" + g_AWRectX);
+                        Console.WriteLine("g_AWRectY[0]" + g_AWRectY);
+
+                    }
+                    else
+                    {
+                        //图像中x,y的坐标位置
+                        ARectangleX = (double)(boxList[1].center.X);
+                        ARectangleY = (double)(boxList[1].center.Y);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("ARectangleX[1]:" + boxList[1].center.X);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].center.Y);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].angle);
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                        world_X_c = (world_cor[0, 0] / s) * 1000;
+                        world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWRectX = world_X_c;
+                        g_AWRectY = world_Y_c;
+                        Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
+                        Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
+                    }
+                }
+            }
+            #endregion
+           
+            #region Situation 4 :既有圆形又有矩形
+            else 
+            {
+                double tmpCircle = circles[0].Center.X;
+                double tmpRect1 = boxList[0].center.X;
+                double tmpRect2 = boxList[1].center.X;
+
+                if (tmpCircle >= tmpRect1)
+                {
+                    if (tmpCircle >= tmpRect2)
+                    {
+                        ACircleX = (double)(circles[0].Center.X);
+                        ACircleY = (double)(circles[0].Center.Y);
+                        Console.WriteLine("圆形的重心：" + circles[0].Center);
+                        //circle_location
+                        double[,] image_pix_circle = new double[3, 1] { { ACircleX }, { ACircleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_circle, ref world_cor);
+
+                        world_X_circle = (world_cor[0, 0] / s) * 1000;
+                        world_Y_circle = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWCircleX = world_X_circle;
+                        g_AWCircleY = world_Y_circle;
+                        Console.WriteLine("A相机中的圆");
+                        Console.WriteLine("g_AWCircleX:" + g_AWCircleX);
+                        Console.WriteLine("g_AWCircleY:" + g_AWCircleY);
+                    }
+                    else
+                    {
+                        //图像中x,y的坐标位置
+                        ARectangleX = (double)(boxList[1].center.X);
+                        ARectangleY = (double)(boxList[1].center.Y);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("ARectangleX[1]:" + boxList[1].center.X);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].center.Y);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].angle);
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                        world_X_c = (world_cor[0, 0] / s) * 1000;
+                        world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWRectX = world_X_c;
+                        g_AWRectY = world_Y_c;
+                        Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
+                        Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
+                    }
+                }
+                else {
+                    if (tmpRect1 >= tmpRect2)
+                    {
+                        //图像中x,y的坐标位置
+                        ARectangleX = (double)(boxList[0].center.X);
+                        ARectangleY = (double)(boxList[0].center.Y);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("ARectangleX[0]:" + boxList[0].center.X);
+                        Console.WriteLine("ARectangleY[0]:" + boxList[0].center.Y);
+                        Console.WriteLine("ARectangleY[0]:" + boxList[0].angle);
+
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                        world_X_c = (world_cor[0, 0] / s) * 1000;
+                        world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWRectX = world_X_c;
+                        g_AWRectY = world_Y_c;
+                        Console.WriteLine("g_AWRectX[0]" + g_AWRectX);
+                        Console.WriteLine("g_AWRectY[0]" + g_AWRectY);
+                    }
+                    else{
+                        //图像中x,y的坐标位置
+                        ARectangleX = (double)(boxList[1].center.X);
+                        ARectangleY = (double)(boxList[1].center.Y);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("ARectangleX[1]:" + boxList[1].center.X);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].center.Y);
+                        Console.WriteLine("ARectangleY[1]:" + boxList[1].angle);
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
+
+                        world_X_c = (world_cor[0, 0] / s) * 1000;
+                        world_Y_c = (world_cor[1, 0] / s) * 1000;
+
+                        g_AWRectX = world_X_c;
+                        g_AWRectY = world_Y_c;
+                        Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
+                        Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
+                    
+                    }
+                }
+            }
+            #endregion
+            #endregion
+
+
+
+            #endregion
+            return 10;
+        }
+~~~
 
