@@ -411,6 +411,122 @@ backlog:
 
 **B相机的处理还没有验证**
 
+1. B相机中的矩形检测解决了，增加了膨胀腐蚀(done)
+
+~~~C#
+private int ImageProcess_B(string ImagePath)
+        {
+            /*canny算子处理图像*/
+            Image<Bgr, Byte> image1 = new Image<Bgr, Byte>(ImagePath);
+            Image<Gray, Byte> grayImage = image1.Convert<Gray, Byte>();
+
+            Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
+
+            double cannyThreshold = 10.0;
+            double circleAccumulatorThreshold = 20.0;
+
+            #region Find circles
+            /*检测圆形*/
+            circles = MedianImage.HoughCircles(
+                new Gray(cannyThreshold),
+                new Gray(circleAccumulatorThreshold),
+                1.5, //Resolution of the accumulator used to detect centers of the circles
+                MedianImage.Width, //min distance 
+                100, //min radius
+                0 //max radius
+                )[0]; //Get the circles from the first channel
+            #endregion
+
+            
+            #region Canny and edge detection
+            double cannyThresholdLinking = 200.0;
+            Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
+            CvInvoke.cvDilate(cannyEdges, cannyEdges, IntPtr.Zero, 3);
+            CvInvoke.cvErode(cannyEdges, cannyEdges, IntPtr.Zero, 2);
+            pictureBox_C_processed.Image = cannyEdges.ToBitmap();
+            //cannyEdges.Save("Before_B_Binary.jpg");
+            #endregion
+
+            //存放矩形的形状
+            List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
+            // PointF[] GetVertices();
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            using (MemStorage storage1 = new MemStorage()) //allocate storage for contour approximation
+                for (
+                    Contour<Point> contours = cannyEdges.FindContours(
+                        Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_NONE,//CV_CHAIN_APPROX_SIMPLE
+                        Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
+                        storage1);
+                    contours != null;
+                    contours = contours.HNext)
+                {
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.01, storage1);//注意这里的The desired approximation accuracy为0.04
+                    //Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
+                    //做第一道筛选，将小矩形去掉
+                    if (currentContour.BoundingRectangle.Width >= 300)
+                    {
+                        Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
+                        //做第一道筛选，将小矩形去掉
+                        //区别长矩形和短矩形
+                        if (Math.Abs((currentContour.BoundingRectangle.Width) - (currentContour.BoundingRectangle.Height)) >= 100)
+                        {
+                            //是长矩形
+                            Console.WriteLine("B相机中的长矩形");
+                            boxList.Add(currentContour.GetMinAreaRect());//5188
+                            g_BFlag = 3;
+                        }
+                        else
+                        { //是短矩形
+                            if (circles[0].Area >= 300000)
+                            {
+                                Console.WriteLine("B相机中的圆形");
+                                g_BFlag = 1;
+                            }
+                            else {//区别短矩形和圆形
+                                Console.WriteLine("B相机中的短矩形");
+                                boxList.Add(currentContour.GetMinAreaRect());
+                                g_BFlag = 2;
+                            }
+                           
+                        }
+                    }
+                    else
+                    { //图像中多余的小矩形
+                        continue;
+                       // Console.WriteLine("图像中未能捕捉到矩形!");
+                    }
+                }
+            //排除重合的矩形
+            for (int q = 0; q < boxList.Count() - 1; q++)
+            {
+                //先看质点X的距离
+                if (Math.Abs(boxList[q].center.X - boxList[q + 1].center.X) <= 20)
+                {
+                    boxList.RemoveAt(q);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            foreach (MCvBox2D box1 in boxList)
+            {
+                triangleRectangleImage.Draw(box1, new Bgr(Color.Red), 2);
+            }
+            foreach (CircleF circle in circles)
+            {
+                //AreaCircle = (Int32)(circle.Area);
+                //Console.WriteLine("In Camera C,the Area of Circle:" + AreaCircle);
+                triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
+            }
+            //结果显示在pictureBox_B_Processing的方框中
+            pictureBox_B_Processing.Image = triangleRectangleImage.ToBitmap();
+            //Console.WriteLine("currentContour.area:" + currentContour.Area);    
+
+            return 10;
+        }
+~~~
+
 
 
 

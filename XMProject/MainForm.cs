@@ -543,9 +543,11 @@ namespace SimpleImageDisplaySample
 
             //"20192021:测试C相机的四种情况；取最左边X的坐标值；图像处理情况"
             //TODO：
-            int tmpCReturn = ImageProcess_C(ImagePath_C);
-            Console.WriteLine("tmpCReturn:" + tmpCReturn);
-            //ImageProcess_B(ImagePath_B);
+            //int tmpCReturn = ImageProcess_C(ImagePath_C);
+            //Console.WriteLine("tmpCReturn:" + tmpCReturn);
+            Console.WriteLine("Before:g_BFlag:" + g_BFlag);
+            ImageProcess_B(ImagePath_B);
+            Console.WriteLine("After:g_BFlag:" + g_BFlag);
             //Console.WriteLine("tmpBReturn:", tmpAReturn);
             //int tmpCReturn = ImageProcess_C(ImagePath_C);
             //Console.WriteLine("tmpCReturn:", tmpCReturn);
@@ -957,109 +959,98 @@ namespace SimpleImageDisplaySample
                 new Gray(circleAccumulatorThreshold),
                 1.5, //Resolution of the accumulator used to detect centers of the circles
                 MedianImage.Width, //min distance 
-                20, //min radius
+                100, //min radius
                 0 //max radius
                 )[0]; //Get the circles from the first channel
             #endregion
 
+            
             #region Canny and edge detection
-            double cannyThresholdLinking = 100.0;
+            double cannyThresholdLinking = 200.0;
             Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
-
+            CvInvoke.cvDilate(cannyEdges, cannyEdges, IntPtr.Zero, 3);
+            CvInvoke.cvErode(cannyEdges, cannyEdges, IntPtr.Zero, 2);
+            pictureBox_C_processed.Image = cannyEdges.ToBitmap();
+            //cannyEdges.Save("Before_B_Binary.jpg");
             #endregion
 
-            #region Find rectangles
             //存放矩形的形状
             List<MCvBox2D> boxList = new List<MCvBox2D>(); //a box is a rotated rectangle
             // PointF[] GetVertices();
+            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
             using (MemStorage storage1 = new MemStorage()) //allocate storage for contour approximation
                 for (
-                   Contour<Point> contours = cannyEdges.FindContours(
-                      Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_SIMPLE,
-                      Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
-                      storage1);
-                   contours != null;
-                   contours = contours.HNext)
+                    Contour<Point> contours = cannyEdges.FindContours(
+                        Emgu.CV.CvEnum.CHAIN_APPROX_METHOD.CV_CHAIN_APPROX_NONE,//CV_CHAIN_APPROX_SIMPLE
+                        Emgu.CV.CvEnum.RETR_TYPE.CV_RETR_LIST,
+                        storage1);
+                    contours != null;
+                    contours = contours.HNext)
                 {
-                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage1);//注意这里的The desired approximation accuracy为0.04
-                    //Console.WriteLine("currentContour.Area:" + currentContour.Area);
-                    if (currentContour.Area > 400) //only consider contours with area greater than 4300
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.01, storage1);//注意这里的The desired approximation accuracy为0.04
+                    //Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
+                    //做第一道筛选，将小矩形去掉
+                    if (currentContour.BoundingRectangle.Width >= 300)
                     {
-                        if (currentContour.Total == 4)  //The contour has 4 vertices.
+                        Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
+                        //做第一道筛选，将小矩形去掉
+                        //区别长矩形和短矩形
+                        if (Math.Abs((currentContour.BoundingRectangle.Width) - (currentContour.BoundingRectangle.Height)) >= 100)
                         {
-                            #region determine if all the angles in the contour are within [80, 100] degree
-                            bool isRectangle = true;
-                            Point[] pts = currentContour.ToArray();
-                            LineSegment2D[] edges = PointCollection.PolyLine(pts, true);
-
-                            for (int i = 0; i < edges.Length; i++)
+                            //是长矩形
+                            Console.WriteLine("B相机中的长矩形");
+                            boxList.Add(currentContour.GetMinAreaRect());//5188
+                            g_BFlag = 3;
+                        }
+                        else
+                        { //是短矩形
+                            if (circles[0].Area >= 300000)
                             {
-                                double angle = Math.Abs(
-                                   edges[(i + 1) % edges.Length].GetExteriorAngleDegree(edges[i]));
-                                if (angle < 80 || angle > 100)
-                                {
-                                    isRectangle = false;
-                                    break;
-                                }
+                                Console.WriteLine("B相机中的圆形");
+                                g_BFlag = 1;
                             }
-                            #endregion
-                            if (isRectangle) boxList.Add(currentContour.GetMinAreaRect());
+                            else {//区别短矩形和圆形
+                                Console.WriteLine("B相机中的短矩形");
+                                boxList.Add(currentContour.GetMinAreaRect());
+                                g_BFlag = 2;
+                            }
+                           
                         }
                     }
-                }
-            #endregion
-            Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
-            #region 对B中形状数量的判断
-            #region Situation 1 ：B相机中没有检测到
-            if (boxList.Count() == 0 && (circles.Count() == 0 || (circles[0].Area >= 4600 || circles[0].Area <= 3000)))
-            {
-                Console.WriteLine("In Camera A,The Rectangle and the Circle are no found!");
-                g_BFlag = 0;
-                return 11;
-            }
-            #region Situation 2 ：B相机中检测到圆形，画出圆形
-            else if (boxList.Count() == 0)
-            {
-                //draw the circles
-                foreach (CircleF circle in circles)
-                {
-                    AreaCircle = (Int32)(circle.Area);
-                    if (AreaCircle >= 3000)
-                    {
-                        triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 3);
-                        g_BFlag = 1;
+                    else
+                    { //图像中多余的小矩形
+                        continue;
+                       // Console.WriteLine("图像中未能捕捉到矩形!");
                     }
-                    else { continue; }
                 }
-            }
-            #endregion Situation 3 ：B相机中检测到矩形
-            #region
-            else 
+            //排除重合的矩形
+            for (int q = 0; q < boxList.Count() - 1; q++)
             {
-                //判断矩形是长矩形还是短矩形
-                //TODO：这里的长短边需要实际情况再判断
-                if (boxList[0].size.Width > boxList[0].size.Height)
+                //先看质点X的距离
+                if (Math.Abs(boxList[q].center.X - boxList[q + 1].center.X) <= 20)
                 {
-                    //draw the rectangles           
-                    foreach (MCvBox2D box1 in boxList)
-                    {
-                        triangleRectangleImage.Draw(box1, new Bgr(Color.DarkOrange), 2);
-
-                        //Console.WriteLine("B相机中的矩形的面积：" + boxList[0].size.Height);
-                    }
-
-                    g_BFlag = 2;
+                    boxList.RemoveAt(q);
                 }
-                else { g_BFlag = 3; Console.WriteLine("In Camrera B,g_BFlag:" + g_BFlag); }
+                else
+                {
+                    continue;
+                }
             }
-            #endregion
-            #endregion
-            #endregion
-            pictureBox_B_Processing.Image = triangleRectangleImage.ToBitmap();
-            return 10;
+            foreach (MCvBox2D box1 in boxList)
+            {
+                triangleRectangleImage.Draw(box1, new Bgr(Color.Red), 2);
+            }
+            foreach (CircleF circle in circles)
+            {
+                //AreaCircle = (Int32)(circle.Area);
+                //Console.WriteLine("In Camera C,the Area of Circle:" + AreaCircle);
+                triangleRectangleImage.Draw(circle, new Bgr(Color.Red), 2);
+            }
             //结果显示在pictureBox_B_Processing的方框中
-           
+            pictureBox_B_Processing.Image = triangleRectangleImage.ToBitmap();
+            //Console.WriteLine("currentContour.area:" + currentContour.Area);    
 
+            return 10;
         }
 
         /* ***
@@ -1111,7 +1102,7 @@ namespace SimpleImageDisplaySample
             double cannyThresholdLinking = 50.0;
             Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
             //TODO:将结果显示在B中
-            pictureBox_B_Processing.Image = cannyEdges.ToBitmap();
+           // pictureBox_B_Processing.Image = cannyEdges.ToBitmap();
             #endregion
 
             #region search rectangles
@@ -1713,6 +1704,7 @@ namespace SimpleImageDisplaySample
         }
         private void ChangeGrabArray(string Speed, string Power)
         {
+
             if (btnOpenSerial.Text == "OpenSerial")
             {
                 MessageBox.Show("Set the SerialPort and open it!");
@@ -1721,6 +1713,7 @@ namespace SimpleImageDisplaySample
             {
                 if (Power == "" && Speed == "")
                 {
+
                     g_GrabArray[5] = (byte)0x00;
                     g_GrabArray[6] = (byte)0x00;
                     g_GrabArray[7] = (byte)0x00;
@@ -1739,6 +1732,7 @@ namespace SimpleImageDisplaySample
                     //BitConverter.GetByte()=>[0]:low;[1]:high
                     g_GrabArray[8] = ByteADD[0];
                     sp.Write(g_GrabArray, 0, g_GrabArray.Length);
+
                 }
                 else if (Power == "")
                 {
@@ -1751,13 +1745,16 @@ namespace SimpleImageDisplaySample
 
                 else
                 {
+                   
                     g_GrabArray[5] = (byte)0x00;
                     g_GrabArray[6] = (byte)0x00;
                     g_GrabArray[7] = (byte)0x00;
                     g_GrabArray[8] = (byte)0x00;
                     //TODO:精华所在
                     int IntSpeed = int.Parse(Speed);
+                    
                     byte[] ByteSpeed = BitConverter.GetBytes(IntSpeed);
+                    
                     if (IntSpeed < 1 || IntSpeed > 255)
                     {
                         MessageBox.Show("Input Speed is wrong!");
@@ -1788,6 +1785,7 @@ namespace SimpleImageDisplaySample
                     byte[] ByteADD = BitConverter.GetBytes(ADD);
                     g_GrabArray[8] = ByteADD[0];
                     timer1.Enabled = true;
+                    Console.WriteLine("====6====");
                     sp.Write(g_GrabArray, 0, g_GrabArray.Length);
                 }
             }
