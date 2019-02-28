@@ -89,8 +89,10 @@ namespace SimpleImageDisplaySample
         double g_AWCircleX = 0;
         double g_AWCircleY = 0;
 
-        //A相机中检测到矩形还是圆形的标志位
-        int g_isARect = 0;
+        //A相机中检测到长矩形短矩形还是圆形的标志位
+        int g_isARectMax = 0;
+        int g_isARectMin = 0;
+
         int g_isACircle = 0;
 
         #endregion
@@ -101,8 +103,7 @@ namespace SimpleImageDisplaySample
         //g_BFlag = 1：检测到了圆形
         //g_BFlag = 2：检测到了长矩形
         //g_BFlag = 3：检测到了短矩形
-        //g_BFlag = 4：什么都没检测到
-        int g_BFlag = 0;
+        //int g_BFlag = 0;
         
         #endregion
 
@@ -505,6 +506,7 @@ namespace SimpleImageDisplaySample
         //将三个相机的开始程序集合在一起
         private void StartButton_Click(object sender, EventArgs e)
         {
+            RS232_Releasing();
             /* ***
              * Fly_C相机的开始程序
              * ***/
@@ -541,16 +543,67 @@ namespace SimpleImageDisplaySample
             //int tmpAReturn = ImageProcess_A(ImagePath_A);
             //Console.WriteLine("tmpAReturn:"+tmpAReturn);
 
+            //double CircleHeight = -168.26 ;
+            //SendXY2ModBus(0, 0,CircleHeight,10);
+
             //"20192021:测试C相机的四种情况；取最左边X的坐标值；图像处理情况"
             //TODO：
-            //int tmpCReturn = ImageProcess_C(ImagePath_C);
-            //Console.WriteLine("tmpCReturn:" + tmpCReturn);
-            Console.WriteLine("Before:g_BFlag:" + g_BFlag);
-            ImageProcess_B(ImagePath_B);
-            Console.WriteLine("After:g_BFlag:" + g_BFlag);
+            //int tmpAReturn = ImageProcess_A(ImagePath_A);
+            //Console.WriteLine("tmpAReturn:" + tmpAReturn);
+            //Console.WriteLine("Before:g_BFlag:" + g_BFlag);
+           //ImageProcess_B(ImagePath_B);
+            //Console.WriteLine("After:g_BFlag:" + g_BFlag);
             //Console.WriteLine("tmpBReturn:", tmpAReturn);
             //int tmpCReturn = ImageProcess_C(ImagePath_C);
             //Console.WriteLine("tmpCReturn:", tmpCReturn);
+            //int returnB = 0;
+            //int oneCount = 0;
+            //int twoCount = 0;
+            //int threeCount = 0;
+            //List<int> ResultBCount = new List<int>();
+            //for (int i = 0; i < 5; i++)
+            //{
+            //    myFactory.CameraList[1].SaveNextFrame(ImagePath_B);
+            //    returnB = ImageProcess_B(ImagePath_B);
+            //    ResultBCount.Add(g_BFlag);
+            //}
+            //foreach (int j in ResultBCount)
+            //{
+            //    //Console.WriteLine("ResultBCount:" + j);
+            //    if (j == 1)
+            //    {
+            //        oneCount += 1;
+            //    }
+            //    else if (j == 2)
+            //    {
+            //        twoCount += 1;
+            //    }
+            //    else
+            //    {
+            //        threeCount += 1;
+            //    }
+            //    if (oneCount >= twoCount)
+            //    {
+            //        if (oneCount >= threeCount)
+            //        {
+            //            g_BFlag = 1;
+            //            Console.WriteLine("1最多！");
+            //        }
+            //    }
+            //    else
+            //    {//2多
+            //        if (twoCount >= threeCount)
+            //        {
+            //            g_BFlag = 2;
+            //            Console.WriteLine("2最多！");
+            //        }
+            //        else
+            //        {
+            //            g_BFlag = 3;
+            //            Console.WriteLine("3最多！");
+            //        }
+            //    }
+            //}
 
         }
         private void StopButton_Click(object sender, EventArgs e)
@@ -628,7 +681,7 @@ namespace SimpleImageDisplaySample
             double cannyThresholdLinking = 50.0;
             Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
             //TODO:将结果显示在B中
-            //pictureBox_B_Processing.Image = cannyEdges.ToBitmap();
+           // pictureBox_B_Processing.Image = cannyEdges.ToBitmap();
             #endregion
 
             #region search rectangles
@@ -646,7 +699,7 @@ namespace SimpleImageDisplaySample
                 {
                     Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.03, storage1);//注意这里的The desired approximation accuracy为0.04
                    //Console.WriteLine("currentContour.Area:" + currentContour.Area);
-                    if (currentContour.Area > 10000) //only consider contours with area greater than 4300
+                    if (currentContour.Area > 1000) //only consider contours with area greater than 4300
                     {
                         if (currentContour.Total == 4)  //The contour has 4 vertices.
                         {
@@ -675,12 +728,13 @@ namespace SimpleImageDisplaySample
                     }
                 }
             #endregion
-            //Console.WriteLine("Before boxList.size:"+boxList.Count());
+            //Console.WriteLine("Before boxList.size:" + boxList.Count());
+            
             #region 将重复的很近的矩形去掉
             for (int q = 0; q<boxList.Count()-1;q++ )
             {
                 //先看质点X的距离
-                if (Math.Abs(boxList[q].center.X - boxList[q + 1].center.X) <= 30)
+                if (Math.Abs(boxList[q].center.X - boxList[q + 1].center.X) <= 10)
                 {
                     boxList.RemoveAt(q);
                 }
@@ -690,14 +744,17 @@ namespace SimpleImageDisplaySample
                 //Console.WriteLine("boxList[{0}].Area:{1}",q,boxList[q].MinAreaRect().Size);
             }
             #endregion
-            // Console.WriteLine("After Before boxList.size:" + boxList.Count());
+            //Console.WriteLine("After boxList.size:" + boxList.Count());
 
             #region draw rectangles and circles
             Image<Bgr, Byte> triangleRectangleImage = new Image<Bgr, Byte>(ImagePath);
+            
             //draw the rectangles           
             foreach (MCvBox2D box1 in boxList)
             {
                 triangleRectangleImage.Draw(box1, new Bgr(Color.Red), 2);
+                //Console.WriteLine("矩形1：Width:{0},Height:{1}.", box1.size.Width, box1.size.Height);
+              
             }
 
             //draw the circles
@@ -742,7 +799,7 @@ namespace SimpleImageDisplaySample
                     return 11;
                 }
                  else{//对圆形排序
-                    Console.WriteLine("圆形的个数：" + circles.Count());
+                    //Console.WriteLine("圆形的个数：" + circles.Count());
                     double tmpMinc = circles[0].Center.X;//记录第一个圆形X为初始值
                     int tmpRecordIc = 0;//记录I的值，最小圆形的序号
                     for (int RectBig2 = 0; RectBig2 < circles.Count(); RectBig2++)
@@ -795,8 +852,6 @@ namespace SimpleImageDisplaySample
                 }
                 else
                 {//对矩形排序
-                    g_isARect = 1;
-                    Console.WriteLine("In camera A,g_isARect:" + g_isARect);
                     #region 判断矩形中最左边的和圆形中最左边的
                     double tmpMin = boxList[0].center.X;//记录第一个矩形X为初始值
                     int tmpRecordI = 0;//记录I的值，最小矩形的序号
@@ -812,7 +867,21 @@ namespace SimpleImageDisplaySample
                         {
                             continue;
                         }
+                    }
                     #endregion
+
+                        //TODO:增加一个判定是长矩形还是短矩形，需要设置抓手的高度
+                        if (Math.Abs(boxList[tmpRecordI].size.Height - boxList[tmpRecordI].size.Width) >= 10)
+                        {
+                            //说明是长矩形
+                            g_isARectMax = 1;
+                            Console.WriteLine("g_isARectMax:" + g_isARectMax);
+                        }
+                        else
+                        { //说明是短矩形
+                            g_isARectMin = 1;
+                            Console.WriteLine("g_isARectMin:" + g_isARectMin);
+                        }
                         //图像中x,y的坐标位置
                         ARectangleX = (double)(boxList[tmpRecordI].center.X);
                         ARectangleY = (double)(boxList[tmpRecordI].center.Y);
@@ -835,19 +904,14 @@ namespace SimpleImageDisplaySample
                         g_AWRectY = g_AtmpWRectY;
                         Console.WriteLine("g_AWRectX[0]" + g_AWRectX);
                         Console.WriteLine("g_AWRectY[0]" + g_AWRectY);
-                        
                     }
-                   
                 }
-            }
             #endregion
 
             #region Situation 4 :既有圆形又有矩形
             else
             {
                 Console.WriteLine("++++++++In Camera A,Situation 4!++++++");
-                Console.WriteLine("Circles.size:"+circles.Count());
-
                 #region 判断矩形中最左边的和圆形中最左边的
                 double tmpMin = boxList[0].center.X;//记录第一个矩形X为初始值
                 int tmpRecordI = 0;//记录I的值，最小矩形的序号
@@ -881,13 +945,24 @@ namespace SimpleImageDisplaySample
                 }
                 if (boxList[tmpRecordI].center.X <= circles[tmpRecordIc].Center.X)
                 {
+                    //TODO:增加一个判定是长矩形还是短矩形，需要设置抓手的高度
+                    if (Math.Abs(boxList[tmpRecordI].size.Height - boxList[tmpRecordI].size.Width) >= 10)
+                    {
+                        //说明是长矩形
+                        g_isARectMax = 1;
+                    }
+                    else { //说明是短矩形
+                        g_isARectMin = 1;
+                        Console.WriteLine("g_isARectMin:" + g_isARectMin);
+                    }
+
                     //图像中x,y的坐标位置
                     ARectangleX = (double)(boxList[tmpRecordI].center.X);
                     ARectangleY = (double)(boxList[tmpRecordI].center.Y);
                     //Console.WriteLine("矩形的重心：" + boxList[0].center);
-                    Console.WriteLine("ARectangleX[1]:" + boxList[tmpRecordI].center.X);
-                    Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].center.Y);
-                    Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].angle);
+                   // Console.WriteLine("ARectangleX[1]:" + boxList[tmpRecordI].center.X);
+                   // Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].center.Y);
+                   // Console.WriteLine("ARectangleY[1]:" + boxList[tmpRecordI].angle);
                     //rectangle_location
                     double[,] image_pix_rect = new double[3, 1] { { ARectangleX }, { ARectangleY }, { 1 } };
 
@@ -900,16 +975,15 @@ namespace SimpleImageDisplaySample
 
                     g_AWRectX = g_AtmpWRectX;
                     g_AWRectY = g_AtmpWRectY;
-                    Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
-                    Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
-                    g_isARect = 1;
+                   // Console.WriteLine("g_AWRectX[1]:" + g_AWRectX);
+                    //Console.WriteLine("g_AWRectY[1]:" + g_AWRectY);
                 }
                 else
                 {
                     //圆形在左
                     ACircleX = (double)(circles[tmpRecordIc].Center.X);
                     ACircleY = (double)(circles[tmpRecordIc].Center.Y);
-                    Console.WriteLine("圆形的重心：" + circles[tmpRecordIc].Center);
+                   // Console.WriteLine("圆形的重心：" + circles[tmpRecordIc].Center);
                     //circle_location
                     double[,] image_pix_circle = new double[3, 1] { { ACircleX }, { ACircleY }, { 1 } };
 
@@ -922,17 +996,19 @@ namespace SimpleImageDisplaySample
 
                     g_AWCircleX = g_AtmpWCircleX;
                     g_AWCircleY = g_AtmpWCircleY;
-                    Console.WriteLine("A相机中的圆");
-                    Console.WriteLine("g_AWCircleX:" + g_AWCircleX);
-                    Console.WriteLine("g_AWCircleY:" + g_AWCircleY);
+                    //Console.WriteLine("A相机中的圆");
+                    //Console.WriteLine("g_AWCircleX:" + g_AWCircleX);
+                   // Console.WriteLine("g_AWCircleY:" + g_AWCircleY);
+                    
                     g_isACircle = 1;
                 }
                 #endregion
-            }    
+            }
+            return 10;
             #endregion
 
             #endregion
-            return 10;
+            
         }
 
         /* ***
@@ -950,7 +1026,7 @@ namespace SimpleImageDisplaySample
             Image<Gray, Byte> MedianImage = grayImage.SmoothMedian(13);
 
             double cannyThreshold = 10.0;
-            double circleAccumulatorThreshold = 20.0;
+            double circleAccumulatorThreshold = 50.0;
 
             #region Find circles
             /*检测圆形*/
@@ -966,11 +1042,11 @@ namespace SimpleImageDisplaySample
 
             
             #region Canny and edge detection
-            double cannyThresholdLinking = 200.0;
+            double cannyThresholdLinking = 180.0;
             Image<Gray, Byte> cannyEdges = MedianImage.Canny(cannyThreshold, cannyThresholdLinking);
             CvInvoke.cvDilate(cannyEdges, cannyEdges, IntPtr.Zero, 3);
             CvInvoke.cvErode(cannyEdges, cannyEdges, IntPtr.Zero, 2);
-            pictureBox_C_processed.Image = cannyEdges.ToBitmap();
+            //pictureBox_C_processed.Image = cannyEdges.ToBitmap();
             //cannyEdges.Save("Before_B_Binary.jpg");
             #endregion
 
@@ -987,42 +1063,44 @@ namespace SimpleImageDisplaySample
                     contours != null;
                     contours = contours.HNext)
                 {
-                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.01, storage1);//注意这里的The desired approximation accuracy为0.04
+                    Contour<Point> currentContour = contours.ApproxPoly(contours.Perimeter * 0.02, storage1);//注意这里的The desired approximation accuracy为0.04
                     //Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
                     //做第一道筛选，将小矩形去掉
                     if (currentContour.BoundingRectangle.Width >= 300)
                     {
-                        Console.WriteLine("currentContour.BoundingRectangle:" + currentContour.BoundingRectangle);
+                        Console.WriteLine("circles[0].Area :" + circles[0].Area);
                         //做第一道筛选，将小矩形去掉
-                        //区别长矩形和短矩形
-                        if (Math.Abs((currentContour.BoundingRectangle.Width) - (currentContour.BoundingRectangle.Height)) >= 100)
+                        if (circles.Count() == 1 && circles[0].Area >= 300000)
                         {
-                            //是长矩形
-                            Console.WriteLine("B相机中的长矩形");
-                            boxList.Add(currentContour.GetMinAreaRect());//5188
-                            g_BFlag = 3;
+                            Console.WriteLine("B相机中检测结果是：圆形");
+                            //g_BFlag = 1;
                         }
-                        else
-                        { //是短矩形
-                            if (circles[0].Area >= 300000)
+                        else {
+                            //区别长矩形和短矩形
+                            if (Math.Abs((currentContour.BoundingRectangle.Width) - (currentContour.BoundingRectangle.Height)) >= 100)
                             {
-                                Console.WriteLine("B相机中的圆形");
-                                g_BFlag = 1;
+                                //是长矩形
+                                Console.WriteLine("B相机中检测结果是：长矩形");
+                                boxList.Add(currentContour.GetMinAreaRect());//5188
+                                //g_BFlag = 2;
                             }
-                            else {//区别短矩形和圆形
-                                Console.WriteLine("B相机中的短矩形");
-                                boxList.Add(currentContour.GetMinAreaRect());
-                                g_BFlag = 2;
+                            else
+                            { //是短矩形 
+                                if (circles.Count() == 1)
+                                {
+                                    Console.WriteLine("B相机中检测结果是：圆形");
+                                    //g_BFlag = 1;
+                                }
+                                else {
+                                    Console.WriteLine("B相机中检测结果是：短矩形");
+                                    boxList.Add(currentContour.GetMinAreaRect());
+                                    Console.WriteLine("短矩形");
+                                    //g_BFlag = 3;
+                                }   
                             }
-                           
                         }
                     }
-                    else
-                    { //图像中多余的小矩形
-                        continue;
-                       // Console.WriteLine("图像中未能捕捉到矩形!");
-                    }
-                }
+                   }
             //排除重合的矩形
             for (int q = 0; q < boxList.Count() - 1; q++)
             {
@@ -1429,7 +1507,7 @@ namespace SimpleImageDisplaySample
                 //圆形先找出来
                 CCircleX = (double)(circles[0].Center.X);
                 CCircleY = (double)(circles[0].Center.Y);
-                Console.WriteLine("圆形的重心：" + circles[0].Center);
+                //Console.WriteLine("圆形的重心：" + circles[0].Center);
                 //circle_location
                 double[,] image_pix_circle = new double[3, 1] { { CCircleX }, { CCircleY }, { 1 } };
 
@@ -1442,107 +1520,163 @@ namespace SimpleImageDisplaySample
 
                 g_CWCircleX = g_CtmpWCircleX;
                 g_CWCircleY = g_CtmpWCircleY;
-                Console.WriteLine("C相机中的圆");
+                //Console.WriteLine("C相机中的圆");
                 Console.WriteLine("g_CWCircleX:" + g_CWCircleX);
                 Console.WriteLine("g_CWCircleY:" + g_CWCircleY);
-                if ((boxList[0].size.Width * boxList[0].size.Height) <= (boxList[1].size.Width * boxList[1].size.Height))
+                if (boxList.Count() == 1)
                 {
-                    //图像中x,y的坐标位置
-                    CRectangleXMin = (double)(boxList[0].center.X);
-                    CRectangleYMin = (double)(boxList[0].center.Y);
-                    g_CWRectMinAngle = (double)(boxList[0].angle);
-                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
-                    Console.WriteLine("CRectangleX[0]:" + boxList[0].center.X);
-                    Console.WriteLine("CRectangleY[0]:" + boxList[0].center.Y);
-                    Console.WriteLine("CRectangleY[0]:" + boxList[0].angle);
+                    //只有一个矩形
+                    if ((boxList[0].size.Width * boxList[0].size.Height) >= 70000)//C中的是长矩形
+                    {
+                        //图像中x,y的坐标位置
+                        CRectangleX = (double)(boxList[0].center.X);
+                        CRectangleY = (double)(boxList[0].center.Y);
+                        g_CWRectMaxAngle = (double)(boxList[0].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("g_CWRectMaxAngle:" + boxList[0].angle);
 
-                    //需要区分长短矩形
-                    double[,] image_pix_rect_Min = new double[3, 1] { { CRectangleXMin }, { CRectangleYMin }, { 1 } };
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { CRectangleX }, { CRectangleY }, { 1 } };
 
-                    Matrix.MatrixMultiply(a, b, ref c);
-                    Matrix.MatrixOpp(c, ref c_);
-                    Matrix.MatrixMultiply(c_, image_pix_rect_Min, ref world_cor);
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
 
-                    g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
-                    g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
 
-                    g_CWRectMinX = g_CtmpWRectX;
-                    g_CWRectMinY = g_CtmpWRectY;
-                    Console.WriteLine("g_CWRectMinX[0]" + g_CWRectMinX);
-                    Console.WriteLine("g_CWRectMinY[0]" + g_CWRectMinY);
+                        g_CWRectMaxX = g_CtmpWRectX;
+                        g_CWRectMaxY = g_CtmpWRectY;
+                        Console.WriteLine("g_CWRectMaxX[0]" + g_CWRectMaxX);
+                        Console.WriteLine("g_CWRectMaxY[0]" + g_CWRectMaxY);
+                    }
+                    else//C相机中的是短矩形
+                    {
+                        //图像中x,y的坐标位置
+                        CRectangleX = (double)(boxList[0].center.X);
+                        CRectangleY = (double)(boxList[0].center.Y);
+                        g_CWRectMinAngle = (double)(boxList[0].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        Console.WriteLine("g_CWRectMinAngle[0]:" + boxList[0].angle);
 
-                    //图像中x,y的坐标位置
-                    CRectangleXMax = (double)(boxList[1].center.X);
-                    CRectangleYMax = (double)(boxList[1].center.Y);
-                    g_CWRectMaxAngle = (double)(boxList[1].angle);
-                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
-                    Console.WriteLine("CRectangleXMax[1]:" + boxList[1].center.X);
-                    Console.WriteLine("CRectangleYMax[1]:" + boxList[1].center.Y);
-                    Console.WriteLine("g_CWRectMaxAngle[1]:" + boxList[1].angle);
-                    //rectangle_location
-                    double[,] image_pix_rect_Max = new double[3, 1] { { CRectangleXMax }, { CRectangleYMax }, { 1 } };
+                        //rectangle_location
+                        double[,] image_pix_rect = new double[3, 1] { { CRectangleX }, { CRectangleY }, { 1 } };
 
-                    Matrix.MatrixMultiply(a, b, ref c);
-                    Matrix.MatrixOpp(c, ref c_);
-                    Matrix.MatrixMultiply(c_, image_pix_rect_Max, ref world_cor);
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect, ref world_cor);
 
-                    g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
-                    g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
 
-                    g_CWRectMaxX = g_CtmpWRectX;
-                    g_CWRectMaxY = g_CtmpWRectY;
-                    Console.WriteLine("g_AWRectX[1]:" + g_CWRectMaxX);
-                    Console.WriteLine("g_AWRectY[1]:" + g_CWRectMaxX);
+                        g_CWRectMinX = g_CtmpWRectX;
+                        g_CWRectMinY = g_CtmpWRectY;
+                        Console.WriteLine("g_CWRectMinX[0]" + g_CWRectMinX);
+                        Console.WriteLine("g_CWRectMinY[0]" + g_CWRectMinY);
+                    }
+
                 }
-                else
-                {
-                    //图像中x,y的坐标位置
-                    CRectangleXMin = (double)(boxList[1].center.X);
-                    CRectangleYMin = (double)(boxList[1].center.Y);
-                    g_CWRectMinAngle = (double)(boxList[1].angle);
-                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
-                    Console.WriteLine("CRectangleX[1]:" + boxList[1].center.X);
-                    Console.WriteLine("CRectangleY[1]:" + boxList[1].center.Y);
-                    Console.WriteLine("CRectangleY[1]:" + boxList[1].angle);
+                else {
+                    if ((boxList[0].size.Width * boxList[0].size.Height) <= (boxList[1].size.Width * boxList[1].size.Height))
+                    {
+                        //图像中x,y的坐标位置
+                        CRectangleXMin = (double)(boxList[0].center.X);
+                        CRectangleYMin = (double)(boxList[0].center.Y);
+                        g_CWRectMinAngle = (double)(boxList[0].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        // Console.WriteLine("CRectangleX[0]:" + boxList[0].center.X);
+                        //Console.WriteLine("CRectangleY[0]:" + boxList[0].center.Y);
+                        //Console.WriteLine("CRectangleY[0]:" + boxList[0].angle);
 
-                    //需要区分长短矩形
-                    double[,] image_pix_rect_Min = new double[3, 1] { { CRectangleXMin }, { CRectangleYMin }, { 1 } };
+                        //需要区分长短矩形
+                        double[,] image_pix_rect_Min = new double[3, 1] { { CRectangleXMin }, { CRectangleYMin }, { 1 } };
 
-                    Matrix.MatrixMultiply(a, b, ref c);
-                    Matrix.MatrixOpp(c, ref c_);
-                    Matrix.MatrixMultiply(c_, image_pix_rect_Min, ref world_cor);
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect_Min, ref world_cor);
 
-                    g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
-                    g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
 
-                    g_CWRectMinX = g_CtmpWRectX;
-                    g_CWRectMinY = g_CtmpWRectY;
-                    Console.WriteLine("g_CWRectMinX[1]" + g_CWRectMinX);
-                    Console.WriteLine("g_CWRectMinY[1]" + g_CWRectMinY);
+                        g_CWRectMinX = g_CtmpWRectX;
+                        g_CWRectMinY = g_CtmpWRectY;
+                        Console.WriteLine("g_CWRectMinX[0]" + g_CWRectMinX);
+                        Console.WriteLine("g_CWRectMinY[0]" + g_CWRectMinY);
 
-                    //图像中x,y的坐标位置
-                    CRectangleXMax = (double)(boxList[0].center.X);
-                    CRectangleYMax = (double)(boxList[0].center.Y);
-                    g_CWRectMaxAngle = (double)(boxList[0].angle);
-                    //Console.WriteLine("矩形的重心：" + boxList[0].center);
-                    Console.WriteLine("CRectangleXMax[0]:" + boxList[0].center.X);
-                    Console.WriteLine("CRectangleYMax[0]:" + boxList[0].center.Y);
-                    Console.WriteLine("g_CWRectMaxAngle[0]:" + boxList[0].angle);
-                    //rectangle_location
-                    double[,] image_pix_rect_Max = new double[3, 1] { { CRectangleXMax }, { CRectangleYMax }, { 1 } };
+                        //图像中x,y的坐标位置
+                        CRectangleXMax = (double)(boxList[1].center.X);
+                        CRectangleYMax = (double)(boxList[1].center.Y);
+                        g_CWRectMaxAngle = (double)(boxList[1].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        //Console.WriteLine("CRectangleXMax[1]:" + boxList[1].center.X);
+                        // Console.WriteLine("CRectangleYMax[1]:" + boxList[1].center.Y);
+                        //Console.WriteLine("g_CWRectMaxAngle[1]:" + boxList[1].angle);
+                        //rectangle_location
+                        double[,] image_pix_rect_Max = new double[3, 1] { { CRectangleXMax }, { CRectangleYMax }, { 1 } };
 
-                    Matrix.MatrixMultiply(a, b, ref c);
-                    Matrix.MatrixOpp(c, ref c_);
-                    Matrix.MatrixMultiply(c_, image_pix_rect_Max, ref world_cor);
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect_Max, ref world_cor);
 
-                    g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
-                    g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
 
-                    g_CWRectMaxX = g_CtmpWRectX;
-                    g_CWRectMaxY = g_CtmpWRectY;
-                    Console.WriteLine("g_AWRectX[0]:" + g_CWRectMaxX);
-                    Console.WriteLine("g_AWRectY[0]:" + g_CWRectMaxX);
+                        g_CWRectMaxX = g_CtmpWRectX;
+                        g_CWRectMaxY = g_CtmpWRectY;
+                        // Console.WriteLine("g_AWRectX[1]:" + g_CWRectMaxX);
+                        // Console.WriteLine("g_AWRectY[1]:" + g_CWRectMaxX);
+                    }
+                    else
+                    {
+                        //图像中x,y的坐标位置
+                        CRectangleXMin = (double)(boxList[1].center.X);
+                        CRectangleYMin = (double)(boxList[1].center.Y);
+                        g_CWRectMinAngle = (double)(boxList[1].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        // Console.WriteLine("CRectangleX[1]:" + boxList[1].center.X);
+                        //Console.WriteLine("CRectangleY[1]:" + boxList[1].center.Y);
+                        // Console.WriteLine("CRectangleY[1]:" + boxList[1].angle);
+
+                        //需要区分长短矩形
+                        double[,] image_pix_rect_Min = new double[3, 1] { { CRectangleXMin }, { CRectangleYMin }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect_Min, ref world_cor);
+
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+
+                        g_CWRectMinX = g_CtmpWRectX;
+                        g_CWRectMinY = g_CtmpWRectY;
+                        // Console.WriteLine("g_CWRectMinX[1]" + g_CWRectMinX);
+                        //  Console.WriteLine("g_CWRectMinY[1]" + g_CWRectMinY);
+
+                        //图像中x,y的坐标位置
+                        CRectangleXMax = (double)(boxList[0].center.X);
+                        CRectangleYMax = (double)(boxList[0].center.Y);
+                        g_CWRectMaxAngle = (double)(boxList[0].angle);
+                        //Console.WriteLine("矩形的重心：" + boxList[0].center);
+                        // Console.WriteLine("CRectangleXMax[0]:" + boxList[0].center.X);
+                        // Console.WriteLine("CRectangleYMax[0]:" + boxList[0].center.Y);
+                        // Console.WriteLine("g_CWRectMaxAngle[0]:" + boxList[0].angle);
+                        //rectangle_location
+                        double[,] image_pix_rect_Max = new double[3, 1] { { CRectangleXMax }, { CRectangleYMax }, { 1 } };
+
+                        Matrix.MatrixMultiply(a, b, ref c);
+                        Matrix.MatrixOpp(c, ref c_);
+                        Matrix.MatrixMultiply(c_, image_pix_rect_Max, ref world_cor);
+
+                        g_CtmpWRectX = (world_cor[0, 0] / s) * 1000;
+                        g_CtmpWRectY = (world_cor[1, 0] / s) * 1000;
+
+                        g_CWRectMaxX = g_CtmpWRectX;
+                        g_CWRectMaxY = g_CtmpWRectY;
+                        // Console.WriteLine("g_AWRectX[0]:" + g_CWRectMaxX);
+                        //Console.WriteLine("g_AWRectY[0]:" + g_CWRectMaxX);
+                    }
                 }
+                
             }
             return 20;
      
@@ -1603,7 +1737,7 @@ namespace SimpleImageDisplaySample
         }
         #endregion
         #region /***将世界坐标值传到机械手端***/
-        private void SendXY2ModBus(double WorldX, double WorldY, double Flag, double WorldZ = 0)
+        private void SendXY2ModBus(double WorldX, double WorldY, double WorldZ ,double Flag)
         {
             WorldX = WorldX * 1000;
             Int32 Int32WorldX = (Int32)WorldX;
@@ -1613,17 +1747,14 @@ namespace SimpleImageDisplaySample
 
             WorldZ = WorldZ * 1000;
             Int32 Int32WorldZ = (Int32)WorldZ;
-            
+
+            Flag = Flag * 1000;
             Int32 FlagDone = (Int32)Flag;
 
             byte[] a = BitConverter.GetBytes(Int32WorldX);
             a = LittleEncodingFloat(a);
 
             byte[] b = BitConverter.GetBytes(Int32WorldY);
-            //for (int i = 0; i < b.Length; i++)
-            //{
-            //    Console.WriteLine("before byte b[{0}]:{1},", i, b[i]);
-            //}
             b = LittleEncodingFloat(b);
 
             byte[] c = BitConverter.GetBytes(Int32WorldZ);
@@ -1785,7 +1916,7 @@ namespace SimpleImageDisplaySample
                     byte[] ByteADD = BitConverter.GetBytes(ADD);
                     g_GrabArray[8] = ByteADD[0];
                     timer1.Enabled = true;
-                    Console.WriteLine("====6====");
+
                     sp.Write(g_GrabArray, 0, g_GrabArray.Length);
                 }
             }
@@ -1911,6 +2042,7 @@ namespace SimpleImageDisplaySample
         //整个流程的启动入口
         private void btnImageProcess_Click(object sender, EventArgs e)
         {
+            RS232_Releasing();
             //returnA：10则表示检测到了图形；11没检测到形状
             int returnA = 0;
             int returnC = 0;
@@ -1922,49 +2054,74 @@ namespace SimpleImageDisplaySample
             int MechineFlag_A = 0;
             int MechineFlag_B = 0;
 
+            int WaitB2C = 0;
+            int CDown = 0;
+
+
             //0.处理A相机中的图像，返回10则表示成功，返回11则表示失败
             do
             {
+                Console.WriteLine("######### 1 ##########");
                 returnA = ImageProcess_A(ImagePath_A);
-            } while (returnA == 10);
+                Console.WriteLine("处理A相机中的图像........");
+            } while (returnA != 10);
            
-            //1.判断A相机得到的是矩形还是圆形，并将A相机的返回值给Modbus
+            //1.判断A相机得到的是长矩形短矩形还是圆形，并将A相机的返回值给Modbus
             //此时的returnA ==10的
             if (g_isACircle == 1)
             {
-                SendXY2ModBus(g_AWCircleX, g_AWCircleY, returnA);
+                Console.WriteLine("######### 2 ##########");
+                //如果是圆形，设置抓手的高度
+                double CircleHeight = -170.264;
+                SendXY2ModBus(g_AWCircleX, g_AWCircleY, CircleHeight, returnA);
+                Console.WriteLine("A相机中最左侧的是：圆形！传送坐标......");
+                //g_isACircle = 0;
             }
-            else {
-                SendXY2ModBus(g_AWRectX, g_AWRectY, returnA);
+            else if(g_isARectMax ==1) {
+                Console.WriteLine("######### 3 ##########");
+                double RectMaxHeight = -153.697;
+                SendXY2ModBus(g_AWRectX, g_AWRectY,RectMaxHeight, returnA);
+                Console.WriteLine("A相机中最左侧的是：长矩形！传送坐标......");
+                //g_isARectMax = 0;
             }
-            
+            else{
+                Console.WriteLine("######### 4 ##########");
+                double RectMinHeight = -132.202;
+                SendXY2ModBus(g_AWRectX, g_AWRectY, RectMinHeight, returnA);
+                Console.WriteLine("A相机中最左侧的是：短矩形！传送坐标......");
+                //g_isARectMin = 0;
+            }
+
             //2.等待机械手的返回值，是否抓取
             //此时应该是机械手去A相机的坐标值，然后下降，给一个返回值给PC，告诉PC要启动抓手了
             //MechineGrab = 5表示需要抓取了；55表示抓取成功了
             do
             {
+                Console.WriteLine("######### 5 ##########");
                 MechineFlag_A = RecieveFlagFromModbus();
-                Console.WriteLine("MechineFlag:{0}", MechineFlag_A);
-            } while (MechineFlag_A == 5);
+                Console.WriteLine("到达A相机中的指定形状坐标，等待抓取指令......");
+            } while (MechineFlag_A != 5);
 
             //是否抓取成功
             do
             {
+                Console.WriteLine("######### 6 ##########");
                 PCGrabDone_A = RS232_Grabing();
                 //将抓取成功后的值发给机械手,55表示抓取成功
-                SendXY2ModBus(0, 0, PCGrabDone_A);
-            } while (PCGrabDone_A == 55);
+                SendXY2ModBus(0, 0, 0,PCGrabDone_A);
+                Console.WriteLine("我在抓取工件咯！抓取成功!!!正在赶往B相机处.......");
+            } while (PCGrabDone_A != 55);
            
             //机械手应该去B相机处
             //接收机械手端的到达B相机处的指令
-            //3.判断B相机是否采集到了物体，13表示采集到了
-            //如果没采集到就停在B相机处
+            //3.判断B相机是否采集到了物体，13表示机械手到达了B相机处
             do
             {
+                Console.WriteLine("######### 7 ##########");
                 MechineFlag_B = RecieveFlagFromModbus();
-                Console.WriteLine("MechineFlag:{0}", MechineFlag_B);
-            } while (MechineFlag_B == 13);
-           
+                Console.WriteLine("到达B相机处!!!");
+            } while (MechineFlag_B != 13);
+
             //B相机处理图像
             /*
                 //g_BFlag = 0;初始值
@@ -1972,56 +2129,143 @@ namespace SimpleImageDisplaySample
                 //g_BFlag = 2：检测到了长矩形
                 //g_BFlag = 3：检测到了短矩形
              */
+            #region 处理B相机5次选出识别出来的结果
+            //int oneCount = 0;
+            //int twoCount = 0;
+            //int threeCount = 0;
+            //List<int> ResultBCount = new List<int>();
+            //for (int i = 0; i < 5; i++)
+            //{
+            //    myFactory.CameraList[1].SaveNextFrame(ImagePath_B);
+            //    returnB = ImageProcess_B(ImagePath_B);
+            //    ResultBCount.Add(g_BFlag);
+            //}
+            //foreach (int j in ResultBCount)
+            //{
+            //    //Console.WriteLine("ResultBCount:" + j);
+            //    if (j == 1)
+            //    {
+            //        oneCount += 1;
+            //    }
+            //    else if (j == 2)
+            //    {
+            //        twoCount += 1;
+            //    }
+            //    else
+            //    {
+            //        threeCount += 1;
+            //    }
+            //}
+            ////排序
+            //if (oneCount >= twoCount)
+            //{
+            //    if (oneCount >= threeCount)
+            //    {
+            //        g_BFlag = 1;
+            //        Console.WriteLine("1最多！");
+            //    }
+            //    else
+            //    {//2大
+            //        if (twoCount >= threeCount)
+            //        {
+            //            g_BFlag = 2;
+            //            Console.WriteLine("2最多！");
+            //        }
+            //        else
+            //        {
+            //            g_BFlag = 3;
+            //            Console.WriteLine("3最多！");
+            //        }
+            //    }
+            //}
+            #endregion
             //TODO:这里还需要想想B相机中的返回值
+            //循环几次找到最优解
             do
             {
+                myFactory.CameraList[1].SaveNextFrame(ImagePath_B);
                 returnB = ImageProcess_B(ImagePath_B);
-            } while (returnB == 10);
-
+                Console.WriteLine("######### 8 ##########");
+                Console.WriteLine("returnB的值是：" + returnB);
+                SendXY2ModBus(0, 0, 0, returnB);
+            } while (returnB != 10);
+ 
             //4.处理C相机中的图像，返回20则表示成功，返回21则表示失败 
             do
             {
+                Console.WriteLine("######### 9 ##########");
+                
                 returnC = ImageProcess_C(ImagePath_C);
-                SendXY2ModBus(0, 0, returnC);
-            } while (returnC == 20); 
+                SendXY2ModBus(0, 0, 0,returnC);
+                Console.WriteLine("正在处理C相机......");
+            } while (returnC != 20);
 
             //5.在机械手端先判断returnC的值
             //这里判断B相机采集到的形状是什么
-            if(g_BFlag == 3)//B相机中检测到的是短矩形
+            if(g_isARectMin == 1)//B相机中检测到的是短矩形
             {
-                SendXY2ModBus(g_CWRectMinX,g_CWRectMinY,g_CWRectMinAngle);
+               do{
+                   Console.WriteLine("g_isARectMin:" + g_isARectMin);
+                   Console.WriteLine("######### 10 ##########");
+                 SendXY2ModBus(g_CWRectMinX,g_CWRectMinY,-22.628,g_CWRectMinAngle);
+                 Console.WriteLine("C相机中的处理结果，我在给机械手传短矩形的值!");
+                 WaitB2C = RecieveFlagFromModbus();
+               }while(WaitB2C != 10);
+               
             }
-            else if(g_BFlag == 1)//B相机检测到了圆形
+            else if(g_isACircle == 1)//B相机检测到了圆形
             {
-                //returnC：表示C相机中处理成功
-                //在机械手端需要先判断returnC
-                SendXY2ModBus(g_CWCircleX, g_CWCircleY, returnC);
+                do{
+                    Console.WriteLine("g_isACircle:" + g_isACircle);
+                    Console.WriteLine("######### 11 ##########");
+                    Console.WriteLine("C相机中的处理结果，我在给机械手传圆形的值!");
+                    SendXY2ModBus(g_CWCircleX, g_CWCircleY, -22.628, returnC);
+                    Console.WriteLine("g_CWCircleX:" + g_CWCircleX);
+                    Console.WriteLine("g_CWCircleY:" + g_CWCircleY);
+
+                    WaitB2C = RecieveFlagFromModbus();
+               }while(WaitB2C != 10);
             }
-            else if(g_BFlag == 2)//B相机检测到了长矩形
+            else if(g_isARectMax == 1)//B相机检测到了长矩形
             {
-                SendXY2ModBus(g_CWRectMaxX,g_CWRectMaxY,g_CWRectMaxAngle);
+                 do{
+                     Console.WriteLine("g_isARectMax:" + g_isARectMax);
+                     Console.WriteLine("######### 12 ##########");
+                    SendXY2ModBus(g_CWRectMaxX, g_CWRectMaxY, -22.628, g_CWRectMaxAngle);
+                    Console.WriteLine("C相机中的处理结果，我在给机械手传长矩形的值!");
+                   WaitB2C = RecieveFlagFromModbus();
+               }while(WaitB2C != 10);
+               
             }
             else
             {
-                Console.WriteLine("B相机什么都没检测到!");
-                SendXY2ModBus(0, 0, g_BFlag);//返回值给机械手，告诉它回到B相机处
+                 do{
+                     Console.WriteLine("######### 13 ##########");
+                     Console.WriteLine("C相机中的处理结果，B相机什么都没检测到!");
+                     //SendXY2ModBus(0, 0,0, g_BFlag);//返回值给机械手，告诉它回到B相机处 
+                     WaitB2C = RecieveFlagFromModbus();
+                }while(WaitB2C != 10);
+               
             }
-            
+
             //6.应该移动手臂到指定地点，下降
             //等待Modbus传来的释放指令
             do
             {
-                PCReleaseDone_C = RecieveFlagFromModbus();
-                Console.WriteLine("MechineFlag_C:{0}", PCReleaseDone_C);
-            } while (PCReleaseDone_C == 4);
+                Console.WriteLine("######### 14 ##########");
+                CDown = RecieveFlagFromModbus();
+            } while (CDown != 4);
+
             do
             {
+                Console.WriteLine("######### 15 ##########");
                 PCReleaseDone_C = RS232_Releasing();
-                SendXY2ModBus(0, 0, PCReleaseDone_C);
-            } while (PCReleaseDone_C == 44);
+                //SendXY2ModBus(0, 0, 0, PCReleaseDone_C);
+                Console.WriteLine("我要爆发啦！我要释放自己呀！！！！");
+            } while (PCReleaseDone_C != 44);
+
             //6.释放完毕之后应该怎么做
             //SendXY2ModBus(g_AWRectX, g_AWRectY, PCReleaseDone_C, PCReleaseDone_C);
-
         }
     }
 }

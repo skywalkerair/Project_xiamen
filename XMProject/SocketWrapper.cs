@@ -29,7 +29,7 @@ namespace SimpleImageDisplaySample
         public byte[] Read(int length)
         {
             byte[] data = new byte[length];
-            this.socket.Receive(data);
+              this.socket.Receive(data);
             this.Log("Receive:", data);
             return data;
         }
