@@ -985,3 +985,226 @@ private int ImageProcess_B(string ImagePath)
         }
 ~~~
 
+~~~抓手程序 
+--Start To Write RL
+--Modbus寄存器地址DW:0x1000保存的是视觉图像坐标的X值
+--Modbus寄存器地址DW:0x1002保存的是视觉图像坐标的Y值
+--Modbus寄存器地址DW:0x1004保存的是视觉图像坐标的Z值
+--Modbus寄存器地址DW:0x1006:写入Modbus中的值如果为1,则表示第一个图像坐标传递成功
+
+--A相机的原点位置(374.436,-318.182,-82.411,36.246)
+--优化之后（382.436，-316.482）
+--A相机的世界坐标系是与机械手的XY坐标系一致
+--B相机的位置(241.231,180.950,-43.268,63.937)
+
+--C相机的原点位置(401.335,77.665,-98.149,36.246)
+--优化之后（412.835,85.665）
+--初始化需要用到的数据
+	CDataX = 0
+	CDataY = 0
+	ADataX = 0
+	ADataX = 0
+	ADataZ = 0
+	ADataX_tmp = 0
+	ADataY_tmp = 0
+	ADataZ_tmp = 0
+	CDataX_tmp = 0
+	CDataY_tmp = 0
+	CDataZ_tmp = 0
+
+RobotServoOff()
+RobotServoOn()
+--初始化
+WriteModbus(0x1000,"DW",0)
+WriteModbus(0x1002,"DW",0)
+WriteModbus(0x1004,"DW",0)
+WriteModbus(0x1006,"DW",0)
+
+--A相机中抓取物件的角度
+A_RZ = 36.259
+--C相机中的角度
+C_RZ = 36.259
+--Up_Z上升高度
+Up_Z = -22.628
+
+--test_up = -9.865
+
+--WahtIsA：用来判断A中抓取的是什么物件
+--WhatIsA = 1:圆；2：长矩形；3:短矩形
+WhatIsA = 0;
+
+--0.初始化机械手原点
+SetGlobalPoint(11,"Initial_point_O",406.037,-375.132,-43.268,A_RZ,0,0,0)
+--0.设置中间点位
+--1:圆(A抓-172.015)；2：长矩形(-153.697)；3：短矩形(A抓-131.472)
+SetGlobalPoint(1,"Middle_Point",236.483,205.192,Up_Z,A_RZ,0,0,0)
+SetGlobalPoint(2,"Middle_Point",237.963,206.280,Up_Z,A_RZ,0,0,0)
+SetGlobalPoint(3,"Middle_Point",238.684,210.819,Up_Z,A_RZ,0,0,0)
+MovP(11,15,15,15)
+
+
+while 1 do
+										--###1###
+	--判断A相机处理成功，11表示相机传值失败
+		ReadNullA = 0
+		repeat 
+			ReadNullA = ReadModbus(0x1006,"DW")
+			ReadNullA = ReadNullA /1000
+		until ReadNullA == 10 
+										--###2###
+	repeat
+	--读取Modbus中A料盘中的坐标,并移动到该点
+			ADataX_tmp = ReadModbus(0x1000,"DW")
+			ADataY_tmp = ReadModbus(0x1002,"DW")
+			ADataZ_tmp = ReadModbus(0x1004,"DW")
+			ADataX_tmp = ADataX_tmp/1000
+			ADataY_tmp = ADataY_tmp/1000  
+			ADataZ_tmp = ADataZ_tmp/1000 
+			
+			ADataX = 382.436 + ADataX_tmp
+			ADataY = -316.482 + ADataY_tmp
+			ADataZ = ADataZ_tmp
+			
+	--根据传值过来的Z轴的高度值判定A盘中是什么形状
+	--1：圆；2：长矩形；3：短矩形
+			if ADataZ == -153.697 then
+				WhatIsA = 2
+			elseif ADataZ == -132.202 then
+				WhatIsA = 3
+			else
+				WhatIsA = 1
+			end
+		
+			--1001点存储A相机的X&Y
+			WritePoint(1001,"X",ADataX)
+			WritePoint(1001,"Y",ADataY)
+			--WritePoint(1001,"Z",ADataZ)
+			WritePoint(1001,"RZ",A_RZ)
+		until 	ADataX~=382.436
+			MovP(1001,5,5,5)
+			DELAY(2)
+			--Down
+			WritePoint(1001,"Z",ADataZ)
+			MovP(1001,5,5,5)
+			
+			--告诉计算机需要抓取物件了
+			WriteModbus(0x1006,"DW",5)
+	
+	
+		--如果返回值是55，说明机械爪抓取操作成功
+		repeat 	
+			Flag_Grab_Done = ReadModbus(0x1006,"DW")
+			Flag_Grab_Done = Flag_Grab_Done/1000
+		until Flag_Grab_Done == 55 
+	
+		DELAY(1)
+		--Up
+		WritePoint(1001,"Z",Up_Z)
+		MovP(1001,5,5,5)
+	  
+	  --DELAY(5)
+		
+		 --移到中间B点
+	  if WhatIsA == 1 then
+		 	MovP(1,15,15,15)
+	  elseif WhatIsA == 2 then
+		 	MovP(2,15,15,15)		
+  	else
+		   MovP(3,15,15,15)
+ 	 end
+		
+	 --判断机械手是否到达了B相机所在之处
+ 	B_Done = 0
+	 RealA2B_X = 0
+	 repeat
+	 	RealA2B_X = RobotX()
+			if RealA2B_X <= 240.000 then
+				if RealA2B_X >= 225.500 then
+					B_Done = 1
+				end
+			end
+   until B_Done == 1
+		
+ 	--告诉计算机到达了B点,给计算机一个13
+		WriteModbus(0x1006,"DW",13)
+		
+		--读取C相机的处理结果，20表示C处理成功了
+	 ReadNullC = 0
+		repeat 
+			ReadNullC = ReadModbus(0x1006,"DW")
+			ReadNullC = ReadNullC/1000
+		until ReadNullC == 20 
+		
+	
+	--------第三阶段---------
+	--3.读取Modbus中C料盘中的坐标,并移动到该点
+		repeat
+			CDataX_tmp = ReadModbus(0x1000,"DW")
+			CDataY_tmp = ReadModbus(0x1002,"DW")
+			CDataZ_tmp = ReadModbus(0x1004,"DW")
+			CDataX_tmp = CDataX_tmp/1000
+			CDataY_tmp = CDataY_tmp/1000  
+			CDataZ_tmp = CDataZ_tmp/1000 
+		
+			--CDataZ = 36.246		
+			--401.335,77.665
+			--412.835,85.665
+			CDataX = 412.735 + CDataX_tmp
+			CDataY = 85.565 + CDataY_tmp
+	
+			WritePoint(1002,"X",CDataX)
+			WritePoint(1002,"Y",CDataY)
+			WritePoint(1002,"RZ",C_RZ)
+	until CDataX ~= 412.735
+			--DELAY(1)
+			--1002点存储C相机的X&Y
+	
+		MovP(1002,5,5,5)
+ 	 RealB2C_X_up = 0
+		RealB2C_X_up_done = 0
+		repeat
+			RealB2C_X_up = RobotX()
+			if RealB2C_X_up >= CDataX-1 then
+				if RealB2C_X_up <= CDataX + 1 then
+						RealB2C_X_up_done = 1
+						WriteModbus(0x1006,"DW",10)
+				end
+		  end
+		until	RealB2C_X_up_done == 1
+
+		
+		--Down，这里需要分情况，下降（后期考虑）
+		--圆形下降-151.011
+	--长矩形下降-135.181
+	--短矩形下降-115.409
+	if WhatIsA == 1 then
+		WritePoint(1002,"Z",-151.011)
+		MovP(1002,5,5,5)
+	elseif WhatIsA == 2 then 
+		WritePoint(1002,"Z",-135.181)
+		MovP(1002,5,5,5)
+	else
+		WritePoint(1002,"Z",-135.181)
+		MovP(1002,5,5,5)
+	end
+			
+		
+		repeat
+			RealB2C_Z_down = RobotZ()
+		until RealB2C_Z_down == -151.011
+	
+		
+		--给Modbus写入信号,告诉机械手要放开物件了
+			WriteModbus(0x1006,"DW",4)
+
+
+		repeat 
+		--如果返回值是44，说明放开操作成功
+			Flag_Grab_Done = ReadModbus(0x1006,"DW")
+		Flag_Grab_Done = Flag_Grab_Done/1000
+		until Flag_Grab_Done == 44
+end
+
+
+~~~
+
